@@ -219,6 +219,69 @@ def test_공급자를_고르는_순서는_openai_먼저(monkeypatch):
     assert 이름 == "OpenAI" and 호출 is step2_naming._call_openai
 
 
+def test_스토리가_짧으면_한_번만_다시_청한다(monkeypatch):
+    """실측 178·193·194자 — 프롬프트만으로는 못 막아서 넣은 안전장치다."""
+    짧은 = dict(ANSWER, story="이" * 150)
+    호출 = []
+
+    def 가짜호출(prompt, _key):
+        호출.append(prompt)
+        if len(호출) == 1:
+            return 짧은
+        return {"story": "구" * 250}
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+
+    result = step2_naming.generate_naming(BRIEF)
+    assert len(호출) == 2                      # 전체 1번 + 스토리 1번, 그 이상은 없다
+    assert len(result["story"]) == 250
+    assert "원래 스토리" in 호출[1]            # 다시 청할 때 원문을 함께 준다
+
+
+def test_다시_청한_것도_짧으면_원래_것을_쓴다(monkeypatch):
+    """두 번째까지 짧으면 받아들인다 — 규격 미달은 리포트에 남아 사람이 본다."""
+    짧은 = dict(ANSWER, story="이" * 150)
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_openai",
+                        lambda *a, **k: 짧은 if len(a[0]) > 500 else {"story": "구" * 100})
+    result = step2_naming.generate_naming(BRIEF)
+    assert result["story"] == "이" * 150
+
+
+def test_다시_청하다_실패해도_죽지_않는다(monkeypatch):
+    짧은 = dict(ANSWER, story="이" * 150)
+    첫번째 = [True]
+
+    def 가짜호출(prompt, _key):
+        if 첫번째[0]:
+            첫번째[0] = False
+            return 짧은
+        raise RuntimeError("쿼터 초과")
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+    assert step2_naming.generate_naming(BRIEF)["story"] == "이" * 150
+
+
+def test_스토리가_충분하면_다시_청하지_않는다(monkeypatch):
+    """멀쩡한 결과에 추가 호출을 하면 토큰 낭비다."""
+    호출수 = [0]
+
+    def 가짜호출(*_a, **_k):
+        호출수[0] += 1
+        return ANSWER
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+    step2_naming.generate_naming(BRIEF)
+    assert 호출수[0] == 1
+
+
 def test_호출이_실패하면_예시로_대신하고_멈추지_않는다(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
     monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)

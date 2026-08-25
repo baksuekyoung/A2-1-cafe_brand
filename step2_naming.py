@@ -153,6 +153,9 @@ RESPONSE_SHAPE = (
     '"differentiation": "우리가 다르게 갈 지점"}]}'
 )
 
+# 계약(docs/데이터-계약.md)이 정한 스토리 최소 길이. validate.py 와 같은 값이다.
+MIN_STORY_CHARS = 200
+
 # 무료·저가 티어에서 막히는 모델이 있어 앞에서부터 시도하고 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
 GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
@@ -364,7 +367,34 @@ def generate_naming(brief: dict) -> dict:
     if len(result["naming"]) < 3 or len(result["slogans"]) < 3:
         print("   ⚠️  [2] 결과가 규격에 못 미쳐 예시 값으로 대신합니다")
         return EXAMPLE
+
+    # 스토리만 짧게 오는 일이 잦다 — "280~320자" 를 프롬프트에 못 박아도
+    # 실측 178·193·194자로 왔다. 그럴 때 스토리만 한 번 다시 청한다.
+    # 전체를 다시 돌리는 것보다 훨씬 싸고, 두 번째도 짧으면 그냥 받아들인다
+    # (규격 미달은 run_report.md 에 기록되므로 사람이 보고 판단한다).
+    if len(result["story"]) < MIN_STORY_CHARS:
+        result["story"] = _retry_story(result["story"], brief, api_key, call)
     return result
+
+
+def _retry_story(short_story: str, brief: dict, api_key: str, call) -> str:
+    """짧게 온 스토리를 한 번만 다시 청한다. 실패하면 원래 것을 돌려준다."""
+    ask = (
+        f"아래 브랜드 스토리는 {len(short_story)}자로 너무 짧습니다.\n"
+        "내용과 어조는 유지한 채 **280자에서 320자 사이**로 늘려 다시 쓰세요.\n"
+        "탄생 배경 → 철학 → 비전 세 가지가 모두 담겨야 합니다.\n\n"
+        f"업종: {brief.get('industry', '')} / 타깃: {brief.get('target', '')}\n\n"
+        f"원래 스토리:\n{short_story}\n\n"
+        '{"story": "다시 쓴 스토리"} 형식의 JSON 으로만 답하세요.'
+    )
+    try:
+        longer = str(call(ask, api_key).get("story") or "").strip()
+    except Exception:
+        return short_story
+    if len(longer) >= MIN_STORY_CHARS:
+        print(f"   🔁 [2] 스토리를 다시 청했습니다 ({len(short_story)} → {len(longer)}자)")
+        return longer
+    return short_story
 
 
 if __name__ == "__main__":
