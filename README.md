@@ -13,13 +13,26 @@ python main.py
 
 Python 3.10 이상. 옵션: `--output <경로>` (기본값 `output`) · `--debug`
 
-[2]에서 LLM을 호출하려면 `pip install openai python-dotenv` 후 `.env`에 키를 넣습니다.
+### 환경 설정
+
+```bash
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+`.env.example` 을 `.env` 로 복사한 뒤 키를 채웁니다.
 
 ```
-OPENAI_API_KEY=발급받은_키
+OPENAI_API_KEY=본인의_API_키
 ```
 
-키가 없으면 예시 값으로 대체되며 파이프라인은 중단되지 않습니다.
+```bash
+python test_api.py
+```
+
+API 키·인터넷·호출 권한이 정상인지 확인합니다.
+**키가 없어도 예시 값으로 대체되며 파이프라인은 중단되지 않습니다.**
 
 ```
 🎨 브랜드 아이덴티티 — 결과 통합
@@ -69,6 +82,7 @@ OPENAI_API_KEY=발급받은_키
 
 ```
 main.py                    통합 실행 진입점
+test_api.py                API 연결 테스트
 brand_result/
   runner.py                [1]~[4] 호출과 예외 격리
   validate.py              데이터 계약 검증
