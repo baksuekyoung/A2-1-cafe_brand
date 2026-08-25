@@ -160,6 +160,7 @@ GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-
 GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 )
+OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 
 
 def build_prompt(brief: dict) -> str:
@@ -231,23 +232,34 @@ def _call_gemini(prompt: str, api_key: str) -> dict:
 def _call_openai(prompt: str, api_key: str) -> dict:
     """OpenAI 를 불러 JSON 을 받아 온다.
 
+    `openai` 패키지를 쓰지 않고 표준 라이브러리로 부른다.
+    설치 환경에 따라 그 패키지가 import 조차 안 되는 일이 있어서다
+    (실제로 `_ctypes` DLL 오류로 import 가 실패하는 환경을 만났다).
+    HTTP 요청 한 번이면 되는 일에 무거운 의존성을 두지 않는다.
+
     Raises:
         RuntimeError: 모델을 하나도 못 쓴 경우.
     """
-    from openai import OpenAI  # 키가 없으면 여기까지 오지 않으므로 안에서 import 한다
+    body = json.dumps({
+        "messages": [{"role": "user", "content": prompt}],
+        "response_format": {"type": "json_object"},
+    })
 
-    client = OpenAI(api_key=api_key)
     시도 = []
     for model in OPENAI_MODELS:
+        payload = json.loads(body)
+        payload["model"] = model
+        request = urllib.request.Request(
+            OPENAI_CHAT_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-                timeout=60,
-            )
-            text = response.choices[0].message.content or ""
-            data = json.loads(text)
+            with urllib.request.urlopen(request, timeout=90) as response:
+                answer = json.loads(response.read().decode("utf-8"))
+            data = json.loads(answer["choices"][0]["message"]["content"] or "")
         except Exception as exc:  # 쿼터·권한·타임아웃·JSON 깨짐을 한데 묶는다
             시도.append(f"{model}={type(exc).__name__}")
             continue  # 이 모델은 못 쓴다. 다음 후보로.

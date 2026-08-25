@@ -195,7 +195,36 @@ def test_프롬프트_문서에_프롬프트가_그대로_담긴다():
     assert "자리표시자" in text
 
 
-@pytest.mark.parametrize("key", ["OPENAI_API_KEY"])
-def test_키가_없으면_llm_번역을_시도하지_않는다(monkeypatch, key):
-    monkeypatch.delenv(key, raising=False)
-    assert logo_prompt.translate_with_llm(BRIEF, NAMING, PALETTE) is None
+def test_키가_없으면_llm_번역을_시도하지_않는다(monkeypatch):
+    for key in ("OPENAI_API_KEY", "GEMINI_API_KEY"):
+        monkeypatch.delenv(key, raising=False)
+    assert logo_prompt.translate_themes_with_llm(BRIEF) is None
+
+
+def test_키가_있어도_문장_구조는_템플릿이_쥔다(monkeypatch):
+    """예전에 프롬프트 전체를 LLM 에게 맡겼더니 흰 배경·글자 금지·색 이름을
+    통째로 지우고 자기 문장으로 다시 썼다. 로고가 팔레트와 다른 색으로 나왔다."""
+    monkeypatch.setattr(logo_prompt, "translate_themes_with_llm",
+                        lambda _brief: ["deep stillness", "gentle heat"])
+    prompts = logo_prompt.make_prompts(BRIEF, NAMING, PALETTE)
+
+    assert "deep stillness" in prompts[0]          # 번역은 반영되고
+    for prompt in prompts:                         # 규칙은 그대로 남는다
+        assert "pure white background" in prompt
+        assert "roasted coffee brown" in prompt
+        assert "logo" not in prompt.lower()
+
+
+def test_llm_번역이_실패해도_낱말표로_만든다(monkeypatch):
+    monkeypatch.setattr(logo_prompt, "translate_themes_with_llm", lambda _brief: None)
+    prompts = logo_prompt.make_prompts(BRIEF, NAMING, PALETTE)
+    assert "calm and unhurried ease" in prompts[0]
+
+
+def test_번역에_한국어가_섞여_오면_버린다(monkeypatch):
+    """모델이 한국어를 남기면 이미지 API 가 엉뚱한 그림을 그린다."""
+    import json as _json
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트")
+    monkeypatch.setattr(logo_prompt, "_ask_json",
+                        lambda *a, **k: _json.loads('{"themes": ["여유", "warmth"]}'))
+    assert logo_prompt.translate_themes_with_llm(BRIEF) == ["warmth"]

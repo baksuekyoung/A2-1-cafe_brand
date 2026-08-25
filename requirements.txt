@@ -1,10 +1,12 @@
-openai
+# 이 프로그램은 **외부 패키지 없이도 돌아갑니다.**
+# LLM·이미지 API 는 표준 라이브러리(urllib)로 직접 부릅니다.
+#
+# 아래는 있으면 좋은 것들입니다.
+#   python-dotenv : .env 파일에서 키를 읽습니다. 없으면 환경변수로 넣어야 합니다.
+#   matplotlib    : 컬러 팔레트 PNG 에 색 이름을 함께 넣습니다.
+#                   없으면 표준 라이브러리로 HEX 만 넣어 그립니다.
+#   pillow        : 이미지 API 가 JPEG 로 돌려줄 때 PNG 로 바꿉니다.
+#                   없으면 그 시안은 건너뜁니다. (matplotlib 을 깔면 함께 깔립니다)
 python-dotenv
-
-# 선택 — 없어도 돌아갑니다.
-#   matplotlib : 컬러 팔레트 PNG 에 색 이름을 함께 넣습니다.
-#                없으면 표준 라이브러리로 HEX 만 넣어 그립니다.
-#   pillow     : 이미지 API 가 JPEG 로 돌려줄 때 PNG 로 바꿉니다.
-#                없으면 그 시안은 건너뜁니다. (matplotlib 을 깔면 함께 깔립니다)
 matplotlib
 pillow

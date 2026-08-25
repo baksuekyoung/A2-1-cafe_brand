@@ -217,67 +217,89 @@ def build_human_prompts(brief: dict, palette: object = None,
     return prompts
 
 
-def translate_with_llm(brief: dict, naming: object, palette: object,
-                       count: int = LOGO_COUNT) -> list[str] | None:
-    """LLM 에게 영어 프롬프트를 짓게 한다. 키가 없거나 실패하면 None.
+def translate_themes_with_llm(brief: dict) -> list[str] | None:
+    """LLM 에게 **키워드만** 영어로 옮기게 한다. 키가 없거나 실패하면 None.
 
-    낱말표로는 못 옮기는 브리프(예: 다른 업종)도 이 경로면 제대로 나온다.
+    프롬프트 전체를 LLM 에게 맡기지 않는다. 예전에 그렇게 했더니 모델이
+    검증된 규칙(흰 배경 · 글자 금지 · 정확한 색 이름)을 통째로 지워 버리고
+    자기 문장으로 다시 썼다. 그래서 로고 색이 팔레트와 달라졌다.
+
+    문장 구조는 `PROMPT_TEMPLATES` 가 쥐고, LLM 은 낱말표에 없는 한국어를
+    옮기는 일만 맡는다.
     """
     api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
-    if not api_key:
+    gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
+    keywords = [str(k).strip() for k in (brief.get("keywords") or []) if str(k).strip()]
+    if not keywords or not (api_key or gemini_key):
         return None
 
-    brand = ""
-    if isinstance(naming, dict) and isinstance(naming.get("naming"), list):
-        names = naming["naming"]
-        if names and isinstance(names[0], dict):
-            brand = str(names[0].get("name") or "")
-
     ask = (
-        "아래 한국어 브랜드 정보를 읽고, 로고 이미지 생성 API 에 넣을 "
-        f"**영어** 프롬프트 {count}개를 만드세요.\n\n"
-        f"업종: {brief.get('industry', '')}\n"
-        f"키워드: {', '.join(str(k) for k in (brief.get('keywords') or []))}\n"
-        f"톤: {brief.get('tone', '')}\n"
-        f"브랜드명: {brand}\n\n"
-        "규칙:\n"
-        f"- 각 프롬프트는 '{STYLE}' 로 시작합니다.\n"
-        "- 100자 안팎으로 짧게 씁니다. 길면 모델이 흘려버립니다.\n"
-        "- 한국어를 한 글자도 넣지 마세요. 색은 HEX 가 아니라 영어 색 이름으로 씁니다.\n"
-        "- 사람·얼굴·사진을 요청하지 마세요. 로고 마크만 만듭니다.\n"
-        '- {"prompts": ["...", "..."]} 형식의 JSON 으로만 답하세요.'
-    )
-    body = json.dumps({
-        "model": "gpt-4o-mini",
-        "messages": [{"role": "user", "content": ask}],
-        "response_format": {"type": "json_object"},
-    }).encode("utf-8")
-    request = urllib.request.Request(
-        "https://api.openai.com/v1/chat/completions",
-        data=body,
-        headers={"Content-Type": "application/json",
-                 "Authorization": f"Bearer {api_key}"},
-        method="POST",
+        "아래 한국어 낱말을 영어로 옮기세요. 로고 이미지 생성 프롬프트에 넣을 것이라," + '\\n'
+        + "그림으로 그릴 수 있는 표현이어야 합니다." + '\\n'
+        + "- 낱말마다 3~5 단어 안쪽의 영어 구절로 옮깁니다." + '\\n'
+        + "- 한국어를 한 글자도 남기지 마세요." + '\\n'
+        + f"낱말: {', '.join(keywords)}" + '\\n\\n'
+        + '{"themes": ["...", "..."]} 형식의 JSON 으로만 답하세요.'
     )
 
     try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-        data = json.loads(payload["choices"][0]["message"]["content"])
+        data = _ask_json(ask, api_key, gemini_key)
     except Exception:
         return None
 
-    prompts = [str(p).strip() for p in (data.get("prompts") or []) if str(p).strip()]
-    # 한국어가 섞여 오면 쓰지 않는다. 낱말표 쪽이 차라리 안전하다.
-    prompts = [p for p in prompts if _is_ascii(p)]
-    return prompts[:count] or None
+    themes = [str(t).strip() for t in (data.get("themes") or []) if str(t).strip()]
+    themes = [t for t in themes if _is_ascii(t)]  # 한국어가 섞여 오면 버린다
+    return themes or None
+
+
+def _ask_json(question: str, openai_key: str, gemini_key: str) -> dict:
+    """있는 키로 LLM 을 불러 JSON 을 받는다. 표준 라이브러리만 쓴다."""
+    if openai_key:
+        body = json.dumps({
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": question}],
+            "response_format": {"type": "json_object"},
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            "https://api.openai.com/v1/chat/completions", data=body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {openai_key}"}, method="POST")
+        with urllib.request.urlopen(request, timeout=60) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+        return json.loads(payload["choices"][0]["message"]["content"])
+
+    body = json.dumps({
+        "contents": [{"parts": [{"text": question}]}],
+        "generationConfig": {"responseMimeType": "application/json"},
+    }).encode("utf-8")
+    url = ("https://generativelanguage.googleapis.com/v1beta/models/"
+           "gemini-flash-lite-latest:generateContent")
+    request = urllib.request.Request(
+        url, data=body,
+        headers={"Content-Type": "application/json", "x-goog-api-key": gemini_key},
+        method="POST")
+    with urllib.request.urlopen(request, timeout=60) as response:
+        payload = json.loads(response.read().decode("utf-8"))
+    parts = payload["candidates"][0]["content"]["parts"]
+    return json.loads("".join(part.get("text", "") for part in parts))
+
 
 
 def make_prompts(brief: dict, naming: object = None, palette: object = None,
                  count: int = LOGO_COUNT) -> list[str]:
-    """LLM 을 먼저 쓰고, 안 되면 낱말표로 만든다."""
-    return translate_with_llm(brief, naming, palette, count) or \
-        build_prompts(brief, naming, palette, count)
+    """이미지 API 에 넣을 프롬프트를 만든다.
+
+    **문장 구조는 언제나 `PROMPT_TEMPLATES` 가 쥔다.** LLM 은 낱말표에 없는
+    한국어 키워드를 영어로 옮기는 데만 쓴다.
+
+    예전에는 프롬프트 전체를 LLM 에게 맡겼는데, 모델이 흰 배경·글자 금지·색 이름을
+    통째로 지우고 자기 문장으로 다시 써서 로고가 팔레트와 다른 색으로 나왔다.
+    """
+    brief = brief if isinstance(brief, dict) else {}
+    번역 = translate_themes_with_llm(brief)
+    if 번역:
+        brief = {**brief, "keywords": 번역}
+    return build_prompts(brief, naming, palette, count)
 
 
 SOURCE_LABEL = {

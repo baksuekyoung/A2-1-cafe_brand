@@ -173,64 +173,50 @@ def test_이름을_문자열로만_줘도_받아_낸다():
 
 # --- LLM 호출 (가짜 응답으로) --------------------------------------------
 
-class _FakeResponse:
-    def __init__(self, payload):
-        self._body = json.dumps(payload).encode("utf-8")
-
-    def read(self):
-        return self._body
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, *_args):
-        return False
+ANSWER = {
+    "naming": [
+        {"name": "온기", "english": "Ongi", "reading": "OWN-gee", "meaning": "따뜻한 기운"},
+        {"name": "쉼표", "english": "Comma", "reading": "COM-ma", "meaning": "잠깐 멈춤"},
+        {"name": "모닥", "english": "Modak", "reading": "MO-dak", "meaning": "작은 불빛"},
+    ],
+    "slogans": ["가", "나", "다"],
+    "story": "이" * 250,
+    "competitors": [{"competitor": "블루보틀", "position": "스페셜티",
+                     "differentiation": "머무는 시간"}],
+}
 
 
 def test_모델이_돌려준_결과를_그대로_쓴다(monkeypatch):
-    """진짜 키 없이도 호출 경로 전체가 도는지 본다."""
-    answer = {
-        "naming": [
-            {"name": "온기", "english": "Ongi", "meaning": "따뜻한 기운"},
-            {"name": "쉼표", "english": "Comma", "meaning": "잠깐 멈춤"},
-            {"name": "모닥", "english": "Modak", "meaning": "작은 불빛"},
-        ],
-        "slogans": ["가", "나", "다"],
-        "story": "이" * 250,
-        "competitors": [{"competitor": "블루보틀", "position": "스페셜티",
-                         "differentiation": "머무는 시간"}],
-    }
-    payload = {"choices": [{"message": {"content": json.dumps(answer, ensure_ascii=False)}}]}
+    """진짜 키 없이도 호출 경로 전체가 도는지 본다.
 
-    class _FakeOpenAI:
-        def __init__(self, **_kwargs):
-            self.chat = self
-
-        @property
-        def completions(self):
-            return self
-
-        def create(self, **_kwargs):
-            class _Message:
-                content = json.dumps(answer, ensure_ascii=False)
-
-            class _Choice:
-                message = _Message()
-
-            class _Result:
-                choices = [_Choice()]
-
-            return _Result()
-
+    `_call_openai` 는 `openai` 패키지를 쓰지 않고 urllib 로 직접 부른다.
+    그래서 여기서도 패키지가 아니라 그 함수를 가로챈다.
+    """
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
     monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setitem(sys.modules, "openai", type("m", (), {"OpenAI": _FakeOpenAI}))
+    monkeypatch.setattr(step2_naming, "_call_openai", lambda *a, **k: ANSWER)
 
     result = step2_naming.generate_naming(BRIEF)
     assert result is not step2_naming.EXAMPLE
     assert [n["english"] for n in result["naming"]] == ["Ongi", "Comma", "Modak"]
+    assert [n["reading"] for n in result["naming"]] == ["OWN-gee", "COM-ma", "MO-dak"]
     assert result["competitors"][0]["differentiation"] == "머무는 시간"
-    assert payload  # 사용하지 않는 변수 경고 방지
+
+
+def test_openai_키가_없으면_gemini_로_간다(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.setenv("GEMINI_API_KEY", "AQ.테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_gemini", lambda *a, **k: ANSWER)
+
+    assert step2_naming.generate_naming(BRIEF) is not step2_naming.EXAMPLE
+
+
+def test_공급자를_고르는_순서는_openai_먼저(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-가짜")
+    monkeypatch.setenv("GEMINI_API_KEY", "AQ.가짜")
+    이름, 키, 호출 = step2_naming._pick_provider()
+    assert 이름 == "OpenAI" and 호출 is step2_naming._call_openai
 
 
 def test_호출이_실패하면_예시로_대신하고_멈추지_않는다(monkeypatch):

@@ -40,6 +40,7 @@ GEMINI_API_KEY=본인의_API_키
 ```
 
 **둘 중 하나만 있으면 됩니다.** OpenAI 키가 있으면 그것을, 없으면 Gemini 를 씁니다.
+LLM 은 `openai` 패키지 없이 표준 라이브러리로 직접 부릅니다.
 
 ```bash
 python test_api.py
@@ -129,7 +130,7 @@ step4_logo.py              [4] generate_logos(brief, naming, palette) -> list
 python -m pytest -q
 ```
 
-107개. 전부 실패 상황을 검증합니다.
+112개. 전부 실패 상황을 검증합니다.
 
 ## 문서
 

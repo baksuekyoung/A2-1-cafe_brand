@@ -25,6 +25,7 @@ GEMINI_URL = (
     "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 )
 GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
+OPENAI_CHAT_URL = "https://api.openai.com/v1/chat/completions"
 OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
 
 QUESTION = "안녕! 테스트야."
@@ -49,21 +50,30 @@ def _key(name: str) -> str:
 
 
 def check_openai(api_key: str) -> tuple[bool, str]:
-    try:
-        from openai import OpenAI
-    except ImportError:
-        return False, "openai 패키지가 없습니다 (pip install -r requirements.txt)"
+    """`openai` 패키지 없이 표준 라이브러리로 부른다.
 
-    client = OpenAI(api_key=api_key)
+    설치 환경에 따라 그 패키지가 import 조차 안 되는 일이 있다.
+    """
     시도 = []
     for model in OPENAI_MODELS:
+        body = json.dumps({
+            "model": model,
+            "messages": [{"role": "user", "content": QUESTION}],
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            OPENAI_CHAT_URL,
+            data=body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[{"role": "user", "content": QUESTION}],
-                timeout=30,
-            )
-            return True, f"{model} → {(response.choices[0].message.content or '').strip()[:40]}"
+            with urllib.request.urlopen(request, timeout=30) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            text = (payload["choices"][0]["message"]["content"] or "").strip()
+            return True, f"{model} → {text[:40]}"
+        except urllib.error.HTTPError as exc:
+            시도.append(f"{model}=HTTP {exc.code}")
         except Exception as exc:
             시도.append(f"{model}={type(exc).__name__}")
     return False, " / ".join(시도)
