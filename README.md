@@ -11,7 +11,18 @@
 python main.py
 ```
 
-Python 3.10 이상. 옵션: `--output <경로>` (기본값 `output`) · `--debug`
+```
+🎨 브랜드 아이덴티티 생성기
+
+브리프 JSON 경로를 입력하세요: samples/brief.json
+   📋 카페 · 20~30대 직장인, 일상 속 여유를 찾는 사람
+      키워드: 여유, 따뜻함, 일상의 쉼표, 감성
+
+출력 폴더 경로를 입력하세요 (엔터 시 ./output):
+```
+
+Python 3.10 이상.
+잘못된 경로나 형식이면 이유를 알려 주고 다시 묻습니다.
 
 ### 환경 설정
 
@@ -68,6 +79,10 @@ API 키·인터넷·호출 권한이 정상인지 확인합니다.
 
 필수 `industry` `target` `keywords`(2개 이상) · 선택 `tone` `competitors` `notes`
 
+경로가 비었을 때, 파일이 없을 때, `.json` 이 아닐 때, JSON 문법이 틀렸을 때,
+필수 필드가 없거나 자료형이 다를 때를 각각 구분해서 알립니다.
+선택 필드는 기본값을 채워 다음 단계로 넘깁니다.
+
 ## 출력
 
 | 파일 | 내용 |
@@ -81,7 +96,8 @@ API 키·인터넷·호출 권한이 정상인지 확인합니다.
 ## 구조
 
 ```
-main.py                    통합 실행 진입점
+main.py                    진입점 — 대화형 입력과 [1] 브리프 검증
+integrate.py               [5] 통합 실행 (main.py 가 호출)
 test_api.py                API 연결 테스트
 brand_result/
   runner.py                [1]~[4] 호출과 예외 격리
@@ -102,7 +118,7 @@ step4_logo.py              [4] generate_logos(brief, naming, palette) -> list
 python -m pytest -q
 ```
 
-33개. 전부 실패 상황을 검증합니다.
+47개. 전부 실패 상황을 검증합니다.
 
 ## 문서
 

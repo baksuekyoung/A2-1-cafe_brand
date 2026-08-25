@@ -11,7 +11,7 @@ import json
 import pytest
 from conftest import LOGOS, PALETTE, PNG
 
-import main as main_module
+import integrate as main_module
 from brand_result import report, runner, store
 
 

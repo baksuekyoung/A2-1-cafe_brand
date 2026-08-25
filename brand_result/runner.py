@@ -84,16 +84,27 @@ def run_step(label: str, module_name: str, func_name: str, checker, *args, debug
     return StepResult(label, "ok", value=value, problems=problems)
 
 
-def run_all(*, debug: bool = False) -> list[StepResult]:
+def run_all(*, brief: dict | None = None, debug: bool = False) -> list[StepResult]:
     """[1] → [4] 를 순서대로 실행한다. 앞이 무너져도 뒤를 시도한다.
 
     뒤 단계는 앞 결과를 인자로 받는다. 앞이 없으면 None 을 넘긴다 —
     계약 문서가 "앞 단계가 실패하면 그 자리는 비워 둔다" 고 정해 두었다.
+
+    Args:
+        brief: 이미 읽어 검증한 브리프. `main.py` 가 대화형으로 경로를 받아
+            [1] 을 끝낸 뒤 넘긴다. 주면 `step1_brief.py` 를 부르지 않는다.
+            규격 검사는 여기서 한 번 더 한다 — 어디로 들어왔든 계약은 같다.
     """
     results: list[StepResult] = []
     values: dict[str, object] = {}
 
     for index, (label, module_name, func_name, checker) in enumerate(STEPS):
+        if index == 0 and brief is not None:
+            result = StepResult(label, "ok", value=brief, problems=checker(brief))
+            results.append(result)
+            values["brief"] = brief
+            continue
+
         # 계약이 정한 인자 순서: load_brief() / generate_naming(brief) /
         # generate_palette(brief, naming) / generate_logos(brief, naming, palette)
         args = [values.get(key) for key in ("brief", "naming", "palette")[:index]]

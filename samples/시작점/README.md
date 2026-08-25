@@ -9,7 +9,7 @@
 
 1. 자기 파트 파일을 **프로젝트 맨 위 폴더로 복사**합니다
 2. 파일 안의 `# 👉 여기를 채웁니다` 부분에 AI 호출을 넣습니다
-3. `python main.py` 를 돌려 ⬜ 가 ✅ 로 바뀌는지 봅니다
+3. `python integrate.py` 를 돌려 ⬜ 가 ✅ 로 바뀌는지 봅니다
 
 ```
 samples/시작점/step2_naming.py  →  step2_naming.py   (맨 위 폴더로)
