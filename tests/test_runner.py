@@ -47,7 +47,7 @@ def test_일부만_있어도_있는_것은_저장된다(parts):
     assert [result.status for result in results] == ["ok", "ok", "missing", "missing"]
     payload = runner.to_result_dict(results, "2026-08-21T12:00:00")
     assert payload["brief"]["industry"] == "성지순례 안내"
-    assert payload["naming"]["slogan"] == "잠깐 멈추셔도 됩니다"
+    assert payload["naming"]["slogans"][0] == "잠깐 멈추셔도 됩니다"
     assert payload["palette"] is None
 
 
@@ -87,8 +87,8 @@ def test_함수_이름이_다르면_계약을_가리킨다(parts):
 def test_규격이_어긋나도_버리지_않고_기록한다(parts):
     """규격 위반은 사람이 보고 판단할 문제다. 값은 살려 둔다."""
     부족한_네이밍 = {
-        "names": [{"name": "쉼표", "reason": "하나뿐"}],  # 3개 이상이어야 한다
-        "slogan": "잠깐 멈추셔도 됩니다",
+        "naming": [{"name": "쉼표", "meaning": "하나뿐"}],  # 3개 이상이어야 한다
+        "slogans": ["하나만 왔다"],  # 3개여야 한다
         "story": "짧다",  # 200자 이상이어야 한다
     }
     parts(
@@ -98,8 +98,9 @@ def test_규격이_어긋나도_버리지_않고_기록한다(parts):
     results = runner.run_all()
 
     assert results[1].status == "ok", "규격 위반이어도 값은 살린다"
-    assert results[1].value["slogan"] == "잠깐 멈추셔도 됩니다"
-    assert any("names" in problem for problem in results[1].problems)
+    assert results[1].value["slogans"] == ["하나만 왔다"]
+    assert any("naming" in problem for problem in results[1].problems)
+    assert any("slogans" in problem for problem in results[1].problems)
     assert any("story" in problem for problem in results[1].problems)
 
 
@@ -111,7 +112,7 @@ def test_뒤_단계는_앞_결과를_인자로_받는다(parts):
         step3_palette=(
             "def generate_palette(brief, naming):\n"
             "    assert brief['industry'] == '성지순례 안내'\n"
-            "    assert naming['slogan'] == '잠깐 멈추셔도 됩니다'\n"
+            "    assert naming['slogans'][0] == '잠깐 멈추셔도 됩니다'\n"
             "    return {'main': {'hex': '#2F4858', 'name': 'n', 'reason': 'r'},\n"
             "            'subs': [{'hex': '#FFFFFF', 'name': 'n', 'reason': 'r'},\n"
             "                     {'hex': '#000000', 'name': 'n', 'reason': 'r'}]}\n"
@@ -126,8 +127,8 @@ def test_앞이_없으면_None_을_넘긴다(parts):
         step2_naming=(
             "def generate_naming(brief):\n"
             "    assert brief is None\n"
-            "    return {'names': [{'name': 'a', 'reason': 'r'}] * 3,\n"
-            "            'slogan': 's', 'story': '가' * 200}\n"
+            "    return {'naming': [{'name': 'a', 'meaning': 'm'}] * 3,\n"
+            "            'slogans': ['a','b','c'], 'story': '가' * 300}\n"
         )
     )
     results = runner.run_all()

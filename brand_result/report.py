@@ -107,20 +107,22 @@ def _naming_block(naming: dict | None) -> list[str]:
         return ["_아직 없습니다._", ""]
 
     lines = []
-    names = naming.get("names") or []
+    names = naming.get("naming") or []
     if names:
         first = names[0]
-        lines += [f"**{first.get('name', '')}**", "", f"> {first.get('reason', '')}", ""]
+        lines += [f"**{first.get('name', '')}**", "", f"> {first.get('meaning', '')}", ""]
         if len(names) > 1:
             lines += ["다른 후보", ""]
             lines += [
-                f"- {item.get('name', '')} — {item.get('reason', '')}" for item in names[1:]
+                f"- {item.get('name', '')} — {item.get('meaning', '')}" for item in names[1:]
             ]
             lines.append("")
 
-    slogan = naming.get("slogan")
-    if slogan:
-        lines += [f"### 슬로건", "", f"> {slogan}", ""]
+    slogans = naming.get("slogans") or []
+    if slogans:
+        lines += ["### 슬로건", ""]
+        lines += [f"> {s}" for s in slogans if isinstance(s, str)]
+        lines.append("")
 
     story = naming.get("story")
     if story:

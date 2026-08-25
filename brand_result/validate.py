@@ -15,6 +15,7 @@ HEX_PATTERN = re.compile(r"^#[0-9A-F]{6}$")
 
 MIN_KEYWORDS = 2
 MIN_NAMES = 3
+MIN_SLOGANS = 3
 MIN_STORY_CHARS = 200
 MIN_SUBS = 2
 
@@ -49,21 +50,34 @@ def check_naming(naming: object) -> list[str]:
     if not isinstance(naming, dict):
         return ["[2] naming 이 dict 가 아닙니다"]
 
-    problems = _missing_keys(naming, ["names", "slogan", "story"], "[2] naming")
+    problems = _missing_keys(naming, ["naming", "slogans", "story"], "[2] naming")
 
-    names = naming.get("names")
+    names = naming.get("naming")
     if isinstance(names, list):
         if len(names) < MIN_NAMES:
             problems.append(
-                f"[2] naming: names 가 {len(names)}개입니다 ({MIN_NAMES}개 이상 필요)"
+                f"[2] naming: naming 이 {len(names)}개입니다 ({MIN_NAMES}개 이상 필요)"
             )
         for index, item in enumerate(names, start=1):
             if not isinstance(item, dict):
-                problems.append(f"[2] naming: names[{index}] 가 dict 가 아닙니다")
+                problems.append(f"[2] naming: naming[{index}] 가 dict 가 아닙니다")
                 continue
-            problems += _missing_keys(item, ["name", "reason"], f"[2] naming.names[{index}]")
-    elif "names" in naming:
-        problems.append("[2] naming: names 가 list 가 아닙니다")
+            problems += _missing_keys(item, ["name", "meaning"], f"[2] naming.naming[{index}]")
+    elif "naming" in naming:
+        problems.append("[2] naming: naming 이 list 가 아닙니다")
+
+    # 명세가 슬로건 3개를 요구한다. 하나만 받으면 규격 미달이 된다.
+    slogans = naming.get("slogans")
+    if isinstance(slogans, list):
+        if len(slogans) < MIN_SLOGANS:
+            problems.append(
+                f"[2] naming: slogans 가 {len(slogans)}개입니다 ({MIN_SLOGANS}개 필요)"
+            )
+        for index, item in enumerate(slogans, start=1):
+            if not isinstance(item, str) or not item.strip():
+                problems.append(f"[2] naming: slogans[{index}] 가 빈 문자열입니다")
+    elif "slogans" in naming:
+        problems.append("[2] naming: slogans 가 문자열 배열이어야 합니다")
 
     story = naming.get("story")
     if isinstance(story, str) and len(story) < MIN_STORY_CHARS:
