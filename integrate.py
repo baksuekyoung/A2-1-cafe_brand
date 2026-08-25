@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from brand_result import report, runner, store
+from brand_result import logo_prompt, palette_png, report, runner, store
 
 # 한국 Windows 콘솔은 cp949 라 이모지를 찍는 순간 죽는다. 표준 출력만 UTF-8 로 바꾼다.
 for _stream in (sys.stdout, sys.stderr):
@@ -78,8 +78,22 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
         ("brand_result.md", lambda: _write(output_dir / "brand_result.md", report.build_markdown(payload))),
         ("run_report.md", lambda: _write(output_dir / "run_report.md", report.build_run_report(payload))),
     )
+    # 이미지 생성이 실패해도 이 파일만 있으면 사람이 직접 만들 수 있다.
+    logos = payload.get("logos")
+    if isinstance(logos, list) and logos:
+        prompts = [str(item.get("prompt", "")) for item in logos if isinstance(item, dict)]
+        sources = [str(item.get("source", "")) for item in logos if isinstance(item, dict)]
+        if any(prompts):
+            writers += (("logo_prompts.md",
+                         lambda: _write(output_dir / "logo_prompts.md",
+                                        logo_prompt.build_markdown(prompts, sources))),)
+
     if isinstance(payload.get("palette"), dict):
-        writers += (("brand_tokens.css", lambda: store.save_css_tokens(payload["palette"], output_dir)),)
+        # 명세가 요구하는 산출물이다 — "컬러 팔레트를 시각화하여 PNG 이미지로 저장".
+        writers += (
+            ("color_palette.png", lambda: palette_png.save_palette_png(payload["palette"], output_dir)),
+            ("brand_tokens.css", lambda: store.save_css_tokens(payload["palette"], output_dir)),
+        )
 
     print()
     for label, write in writers:

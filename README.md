@@ -89,9 +89,14 @@ API 키·인터넷·호출 권한이 정상인지 확인합니다.
 | --- | --- |
 | **`brand_result.md`** | **브랜드 아이덴티티 결과 문서** |
 | `brand_result.json` | 텍스트 결과 전체 |
+| **`color_palette.png`** | **컬러 팔레트 시각화** |
+| **`logo_01.png` `logo_02.png`** | **로고 시안** |
+| `logo_prompts.md` | 로고에 쓴 영어 프롬프트 |
 | `run_report.md` | 단계별 성공·실패와 규격 위반 기록 |
 | `brand_tokens.css` | 컬러 팔레트를 CSS 변수·Tailwind 설정으로 |
-| `logo_01.png` … | 로고 시안 |
+
+이미지 생성이 실패해도 `logo_prompts.md` 만 있으면 직접 만들 수 있습니다.
+프롬프트는 영어로 만듭니다 — 한국어를 그대로 넘기면 로고가 아니라 인물 사진이 나옵니다.
 
 ## 구조
 
@@ -104,6 +109,8 @@ brand_result/
   validate.py              데이터 계약 검증
   store.py                 파일 저장 · 명도 대비 계산
   report.py                결과 문서 생성
+  palette_png.py           컬러 팔레트 PNG 시각화
+  logo_prompt.py           로고용 영어 프롬프트 생성
 step1_brief.py             [1] load_brief() -> dict
 step2_naming.py            [2] generate_naming(brief) -> dict
 step3_palette.py           [3] generate_palette(brief, naming) -> dict
@@ -118,7 +125,7 @@ step4_logo.py              [4] generate_logos(brief, naming, palette) -> list
 python -m pytest -q
 ```
 
-47개. 전부 실패 상황을 검증합니다.
+63개. 전부 실패 상황을 검증합니다.
 
 ## 문서
 
@@ -126,3 +133,4 @@ python -m pytest -q
 | --- | --- |
 | [`docs/데이터-계약.md`](docs/데이터-계약.md) | 단계 간 입출력 규격 |
 | [`docs/최종보고서.md`](docs/최종보고서.md) | 파트별 담당자와 주요 의사결정 |
+| [`docs/명세-점검표.md`](docs/명세-점검표.md) | 명세 요구사항과 구현 대조표 |
