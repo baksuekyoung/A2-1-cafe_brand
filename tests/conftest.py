@@ -1,7 +1,10 @@
 """테스트 공용 준비물.
 
-팀원 파트(step1~4)를 진짜 파일로 만들지 않고, 임시 폴더에 만들어 넣었다가
-치운다. 실제 통합이 어떻게 도는지 그대로 시험하려는 것이다.
+각 단계(step1~4)를 진짜 파일 대신 임시 폴더에 만들어 넣었다가 치운다.
+실제 통합이 어떻게 도는지 그대로 시험하려는 것이다.
+
+저장소 루트에는 실제로 돌아가는 step*.py 가 있다. 막지 않으면 "파트가 아직
+없을 때" 를 시험할 수 없으므로, 임시 폴더에 없는 단계는 없는 것으로 만든다.
 """
 
 from __future__ import annotations
@@ -13,6 +16,26 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+STEP_NAMES = ("step1_brief", "step2_naming", "step3_palette", "step4_logo")
+
+
+class _BlockMissingParts:
+    """임시 폴더에 없는 단계 모듈을 '없는 것' 으로 만든다.
+
+    `sys.meta_path` 맨 앞에 꽂아 두면 import 를 가로챌 수 있다.
+    `ModuleNotFoundError` 를 `name` 과 함께 던져야 통합 쪽이 "파일이 없다" 와
+    "이 파일이 부르는 다른 패키지가 없다" 를 구분할 수 있다.
+    """
+
+    def __init__(self, part_dir: Path, names: set[str]) -> None:
+        self.part_dir = part_dir
+        self.names = names
+
+    def find_spec(self, fullname, path=None, target=None):
+        if fullname in self.names and not (self.part_dir / f"{fullname}.py").exists():
+            raise ModuleNotFoundError(f"No module named {fullname!r}", name=fullname)
+        return None  # 나머지는 평소대로
 
 
 BRIEF = {
@@ -60,6 +83,12 @@ def parts(tmp_path, monkeypatch):
     part_dir.mkdir()
     monkeypatch.syspath_prepend(str(part_dir))
 
+    # 저장소 루트의 진짜 step*.py 를 가린다. 이게 없으면 "파트가 없을 때" 를
+    # 시험하는 테스트가 진짜 파일을 찾아내 전부 성공해 버린다.
+    blocker = _BlockMissingParts(part_dir, set(STEP_NAMES))
+    sys.meta_path.insert(0, blocker)
+    monkeypatch.setattr(sys, "meta_path", sys.meta_path)  # 원상복구는 아래 finally 에서
+
     defaults = {
         "step1_brief": f"def load_brief():\n    return {BRIEF!r}\n",
         "step2_naming": f"def generate_naming(brief):\n    return {NAMING!r}\n",
@@ -83,7 +112,9 @@ def parts(tmp_path, monkeypatch):
 
     yield make
 
-    for name in created:
+    if blocker in sys.meta_path:
+        sys.meta_path.remove(blocker)
+    for name in STEP_NAMES:
         sys.modules.pop(name, None)
 
 

@@ -17,10 +17,10 @@ import pytest
 
 from brand_result import report, validate
 
-# sys.path 에 samples/시작점 을 넣으면 안 된다. 다른 테스트가 "step*.py 가 아직
-# 없는" 상태를 검사하고 있어서, 넣는 순간 그 테스트들이 전부 깨진다.
+# 이름 그대로 import 하면 안 된다. 다른 테스트가 "step*.py 가 아직 없는" 상태를
+# 검사하려고 import 를 가로막는데, 여기서 미리 sys.modules 에 올려 두면 충돌한다.
 # 그래서 파일 경로로 직접 읽어 **다른 이름**으로 등록한다.
-_STEP2 = Path(__file__).resolve().parent.parent / "samples" / "시작점" / "step2_naming.py"
+_STEP2 = Path(__file__).resolve().parent.parent / "step2_naming.py"
 _spec = importlib.util.spec_from_file_location("step2_naming_under_test", _STEP2)
 step2_naming = importlib.util.module_from_spec(_spec)
 sys.modules["step2_naming_under_test"] = step2_naming

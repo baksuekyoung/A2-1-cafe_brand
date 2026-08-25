@@ -107,15 +107,20 @@ def test_잘못된_경로를_주면_다시_묻는다(tmp_path, monkeypatch, caps
     assert "찾을 수 없습니다" in capsys.readouterr().out
 
 
-def test_브리프를_넘기면_step1_파일을_읽지_않는다():
-    """main.py 가 [1] 을 끝내고 넘긴 경우, runner 는 그 값을 그대로 쓴다."""
+def test_브리프를_넘기면_step1_파일을_읽지_않는다(parts):
+    """main.py 가 [1] 을 끝내고 넘긴 경우, runner 는 그 값을 그대로 쓴다.
+
+    `parts` 를 받는 이유 — 이걸 빼면 뒤 단계가 진짜 API 를 부른다.
+    """
+    parts()  # 단계 파일을 아무것도 만들지 않는다
     results = runner.run_all(brief=BRIEF)
     assert results[0].status == "ok"
     assert results[0].value is BRIEF
 
 
-def test_넘겨받은_브리프도_규격_검사를_거친다():
+def test_넘겨받은_브리프도_규격_검사를_거친다(parts):
     """어느 경로로 들어왔든 계약은 같다."""
+    parts()
     results = runner.run_all(brief={"industry": "카페"})
     assert results[0].status == "ok"       # 버리지는 않는다
     assert results[0].problems             # 어긋난 곳은 기록한다
