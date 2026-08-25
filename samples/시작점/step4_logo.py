@@ -38,5 +38,11 @@ def generate_logos(brief: dict, naming: dict, palette: dict) -> list:
 
 
 if __name__ == "__main__":
+    # 한글 윈도우 콘솔(cp949)은 '—' 같은 글자에서 죽는다. 혼자 돌려 볼 때를 위한 안전장치.
+    import sys
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+
     logos = generate_logos({}, {}, {})
     print(f"로고 {len(logos)}장 · 첫 장 {len(logos[0]['image_bytes'])} bytes")

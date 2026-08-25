@@ -1,4 +1,4 @@
-"""[3] 컬러 팔레트 — 담당: 미정
+"""[3] 컬러 팔레트 — 담당: 박수경
 
 LLM 에게 브랜드에 맞는 색을 고르게 합니다.
 
@@ -33,4 +33,10 @@ def generate_palette(brief: dict, naming: dict) -> dict:
 
 
 if __name__ == "__main__":
+    # 한글 윈도우 콘솔(cp949)은 '—' 같은 글자에서 죽는다. 혼자 돌려 볼 때를 위한 안전장치.
+    import sys
+    for _stream in (sys.stdout, sys.stderr):
+        if hasattr(_stream, "reconfigure"):
+            _stream.reconfigure(encoding="utf-8", errors="replace")
+
     print(json.dumps(generate_palette({}, {}), ensure_ascii=False, indent=2))
