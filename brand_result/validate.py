@@ -84,6 +84,18 @@ def check_naming(naming: object) -> list[str]:
                 problems.append(f"[2] naming: naming[{index}] 가 dict 가 아닙니다")
                 continue
             problems += _missing_keys(item, ["name", "meaning"], f"[2] naming.naming[{index}]")
+
+            # 보너스로 '다국어 네이밍 지원' 을 택했으므로 영문 표기가 있어야 한다.
+            # 없다고 버리지는 않는다 — run_report.md 에 적어 사람이 보게 한다.
+            english = str(item.get("english") or "").strip()
+            if not english:
+                problems.append(
+                    f"[2] naming.naming[{index}]: english (영문 표기) 가 비어 있습니다"
+                )
+            elif not english.replace(" ", "").isascii():
+                problems.append(
+                    f"[2] naming.naming[{index}]: english 에 영문이 아닌 글자가 있습니다"
+                )
     elif "naming" in naming:
         problems.append("[2] naming: naming 이 list 가 아닙니다")
 

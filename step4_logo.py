@@ -158,8 +158,10 @@ def _pollinations_image(prompt: str) -> bytes | None:
     User-Agent 를 반드시 보낸다. 파이썬 기본 UA 로 부르면 앞단 방화벽이
     HTTP 403 으로 막는다 (봇으로 본다).
     """
+    # model=flux 를 지정한다. 기본 모델은 "no text" 를 흘려버리고 로고 아래
+    # 뭉개진 가짜 글씨를 같이 그린다. flux 는 그 지시를 지킨다.
     url = (POLLINATIONS_URL.format(prompt=urllib.parse.quote(prompt))
-           + "?width=1024&height=1024&nologo=true")
+           + "?width=1024&height=1024&nologo=true&model=flux")
     request = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA})
     try:
         with urllib.request.urlopen(request, timeout=TIMEOUT) as response:

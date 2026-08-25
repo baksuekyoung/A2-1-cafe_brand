@@ -34,28 +34,33 @@ EXAMPLE = {
         "naming": [
             {
                 "name": "온기(溫氣)",
-                "meaning": "따뜻한 기운이라는 뜻으로, 커피 한 잔이 주는 온기와 사람 사이의 따뜻함을 동시에 담았습니다.",
-                "english": "Ongi"
+                "english": "Ongi",
+                "reading": "OWN-gee",
+                "meaning": "따뜻한 기운이라는 뜻으로, 커피 한 잔이 주는 온기와 사람 사이의 따뜻함을 동시에 담았습니다."
             },
             {
                 "name": "쉼표",
-                "meaning": "바쁜 일상 속 잠깐 멈추는 순간을 뜻합니다. 문장 속 쉼표처럼, 삶의 리듬을 조율하는 공간을 표현합니다.",
-                "english": "Comma"
+                "english": "Comma",
+                "reading": "COM-ma",
+                "meaning": "바쁜 일상 속 잠깐 멈추는 순간을 뜻합니다. 문장 속 쉼표처럼, 삶의 리듬을 조율하는 공간을 표현합니다."
             },
             {
                 "name": "모닥",
-                "meaning": "모닥불의 줄임말로, 작지만 확실한 따뜻함을 주는 공간이라는 의미를 담았습니다.",
-                "english": "Modak"
+                "english": "Modak",
+                "reading": "MO-dak",
+                "meaning": "모닥불의 줄임말로, 작지만 확실한 따뜻함을 주는 공간이라는 의미를 담았습니다."
             },
             {
                 "name": "한뼘",
-                "meaning": "아주 작은 여유라도 충분하다는 뜻입니다. 바쁜 하루 중 한 뼘만큼의 쉬어가는 시간을 선물합니다.",
-                "english": "Hanppyeom"
+                "english": "Hanppyeom",
+                "reading": "HAN-byeom",
+                "meaning": "아주 작은 여유라도 충분하다는 뜻입니다. 바쁜 하루 중 한 뼘만큼의 쉬어가는 시간을 선물합니다."
             },
             {
                 "name": "노을목",
-                "meaning": "노을이 지는 시간, 하루를 마무리하며 잠시 머무는 장소라는 의미입니다.",
-                "english": "Noeulmok"
+                "english": "Noeulmok",
+                "reading": "NO-eul-mok",
+                "meaning": "노을이 지는 시간, 하루를 마무리하며 잠시 머무는 장소라는 의미입니다."
             }
         ],
         "slogans": [
@@ -90,11 +95,23 @@ NAMING_RULE = (
     "  (4) 속성 강조형 — 메가(대용량). 핵심 강점을 이름에 직접 심음\n"
     "  (5) 지명·역사형 — 이디야(에티오피아 부족), 빽다방(옛 다방 정서)\n"
     "meaning 에는 이름의 뜻과 유래를 한 문장으로 씁니다.\n"
-    "english 에는 같은 이름의 영문 표기를 씁니다. 간판·도메인·SNS 계정에 그대로\n"
-    "쓸 수 있어야 하므로, 소리 나는 대로 옮기거나 뜻이 통하는 영어 낱말로 짓습니다.\n"
-    "(예: 온기 → Ongi, 쉼표 → Comma) 영문만 12자 안쪽으로 짧게 씁니다.\n"
     "이미 널리 쓰이는 유명 브랜드명은 피합니다.\n"
     "가장 좋다고 판단한 후보를 맨 앞에 놓으세요."
+)
+
+# 보너스 — 다국어 네이밍 지원. 한글 이름마다 영문 표기를 함께 만든다.
+MULTILINGUAL_RULE = (
+    "후보마다 **한글 이름과 영문 표기를 함께** 만드세요. 둘 다 반드시 채웁니다.\n"
+    "  - name    : 한글 이름\n"
+    "  - english : 같은 이름의 영문 표기\n"
+    "  - reading : 영문 표기를 어떻게 읽는지 (예: OWN-gee)\n"
+    "영문 표기는 간판·도메인·SNS 계정에 그대로 쓸 수 있어야 합니다.\n"
+    "  - 소리 나는 대로 옮기거나(온기 → Ongi), 뜻이 통하는 영어 낱말로 짓습니다(쉼표 → Comma).\n"
+    "  - 12자 안쪽, 알파벳만 씁니다. 숫자·기호·띄어쓰기를 넣지 마세요.\n"
+    "  - 영어권 사람이 읽었을 때 발음하기 쉬워야 합니다.\n"
+    "  - 다른 뜻으로 읽히지 않는지 확인하세요 (예: 한글 '모닥' 을 Modak 으로 쓰면 무난하지만,\n"
+    "    Mock 처럼 들리는 표기는 피합니다).\n"
+    "  - 후보끼리 영문 표기가 겹치지 않게 합니다."
 )
 
 SLOGAN_RULE = (
@@ -128,7 +145,8 @@ COMPETITOR_RULE = (
 )
 
 RESPONSE_SHAPE = (
-    '{"naming": [{"name": "한글 이름", "english": "영문 표기", "meaning": "뜻"}], '
+    '{"naming": [{"name": "한글 이름", "english": "영문 표기", '
+    '"reading": "영문 읽는 법", "meaning": "뜻"}], '
     '"slogans": ["슬로건1", "슬로건2", "슬로건3"], '
     '"story": "300자 내외의 브랜드 스토리", '
     '"competitors": [{"competitor": "경쟁사", "position": "시장에서의 자리", '
@@ -167,7 +185,8 @@ def build_prompt(brief: dict) -> str:
     if brief.get("notes"):
         lines.append(f"추가 요청: {brief['notes']}")
 
-    lines += ["", NAMING_RULE, "", SLOGAN_RULE, "", STORY_RULE, "", COMPETITOR_RULE, "",
+    lines += ["", NAMING_RULE, "", MULTILINGUAL_RULE, "", SLOGAN_RULE, "",
+              STORY_RULE, "", COMPETITOR_RULE, "",
               f"아래 JSON 형식으로만 답하세요. 다른 말은 붙이지 마세요.\n{RESPONSE_SHAPE}"]
     return "\n".join(lines)
 
@@ -255,8 +274,9 @@ def _normalize(data: dict) -> dict:
             if name:
                 naming.append({
                     "name": name,
-                    # 보너스 — 한글과 영문 네이밍을 함께 낸다.
+                    # 보너스 — 다국어 네이밍. 한글 이름마다 영문 표기를 함께 낸다.
                     "english": str(item.get("english") or item.get("en") or "").strip(),
+                    "reading": str(item.get("reading") or "").strip(),
                     "meaning": str(item.get("meaning") or "").strip(),
                 })
 

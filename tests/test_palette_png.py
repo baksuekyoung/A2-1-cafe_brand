@@ -84,21 +84,38 @@ def test_키워드가_영어로_옮겨진다():
     assert "warmth" in prompts[1]
 
 
-def test_업종과_색이_영어로_들어간다():
-    prompt = logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)[0]
-    assert "cafe" in prompt
-    assert "roasted coffee brown" in prompt
+def test_색이_영어_이름으로_들어간다():
+    assert "roasted coffee brown" in logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)[0]
 
 
-def test_한글_브랜드명은_아예_빼고_만든다():
-    """'온기(溫氣)' 를 넘기면 모델이 한자를 그리려 든다."""
-    prompt = logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)[0]
-    assert "온기" not in prompt and "called" not in prompt
+def test_배경을_흰색으로_못_박는다():
+    """빼면 배경이 브랜드 색으로 칠해져 나온다. 실제로 그렇게 나왔다."""
+    for prompt in logo_prompt.build_prompts(BRIEF, NAMING, PALETTE):
+        assert "pure white background" in prompt
 
 
-def test_영문_이름이_있으면_넣는다():
+def test_logo_라는_낱말을_쓰지_않는다():
+    """모델이 'logo' 를 보면 밑에 뭉개진 가짜 글씨를 같이 그린다."""
+    for prompt in logo_prompt.build_prompts(BRIEF, NAMING, PALETTE):
+        assert "logo" not in prompt.lower()
+
+
+def test_글자_금지를_여러_표현으로_반복한다():
+    """한 번만 적으면 무료 모델이 흘려버린다."""
+    for prompt in logo_prompt.build_prompts(BRIEF, NAMING, PALETTE):
+        금지 = [낱말 for 낱말 in ("no lettering", "no words", "no signature", "no watermark",
+                                  "wordless", "textless", "no typography", "no letters",
+                                  "no numbers") if 낱말 in prompt]
+        assert len(금지) >= 3, prompt
+
+
+def test_브랜드명은_어느_프롬프트에도_넣지_않는다():
+    """이름을 넣으면 모델이 그것을 그림 안에 써 넣으려다 글자를 뭉갠다."""
     naming = {"naming": [{"name": "온기", "english": "Ongi", "meaning": "따뜻한 기운"}]}
-    assert "called Ongi" in logo_prompt.build_prompts(BRIEF, naming, PALETTE)[0]
+    for prompt in logo_prompt.build_prompts(BRIEF, naming, PALETTE):
+        assert "Ongi" not in prompt
+        assert "온기" not in prompt
+        assert "called" not in prompt
 
 
 def test_모르는_키워드는_넣지_않고_기본값을_쓴다():
@@ -112,7 +129,7 @@ def test_모르는_키워드는_넣지_않고_기본값을_쓴다():
 def test_브리프가_비어도_프롬프트가_나온다():
     prompts = logo_prompt.build_prompts({}, None, None)
     assert len(prompts) == 2
-    assert all(prompt.startswith(logo_prompt.STYLE) for prompt in prompts)
+    assert all(prompt.strip() for prompt in prompts)
 
 
 def test_이미_영어인_값은_그대로_쓴다():
@@ -149,6 +166,12 @@ def test_직접_쓸_프롬프트에_글자_금지가_들어간다():
     """넣지 않으면 로고 안에 깨진 글씨가 같이 나온다."""
     for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
         assert "Do not include any letters" in prompt
+        assert "completely wordless" in prompt
+
+
+def test_직접_쓸_프롬프트도_배경을_흰색으로_못_박는다():
+    for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
+        assert "pure white background" in prompt
 
 
 def test_직접_쓸_프롬프트에_색_이름이_들어간다():

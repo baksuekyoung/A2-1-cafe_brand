@@ -133,12 +133,20 @@ def _naming_block(naming: dict | None) -> list[str]:
 
 
 def _full_name(item: dict) -> str:
-    """한글 이름에 영문 표기를 붙인다 (보너스 — 다국어 네이밍)."""
+    """한글 이름에 영문 표기를 붙인다 (보너스 — 다국어 네이밍 지원).
+
+    읽는 법이 있으면 함께 적는다. 영어권 사람에게 이름을 소개할 때 쓴다.
+    """
     if not isinstance(item, dict):
         return ""
     name = str(item.get("name") or "").strip()
     english = str(item.get("english") or "").strip()
-    return f"{name} ({english})" if name and english else name or english
+    reading = str(item.get("reading") or "").strip()
+
+    if not english:
+        return name
+    영문 = f"{english}, {reading}" if reading else english
+    return f"{name} ({영문})" if name else english
 
 
 def _competitor_block(competitors: object) -> list[str]:

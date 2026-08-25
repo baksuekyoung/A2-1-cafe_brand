@@ -49,9 +49,12 @@ BRIEF = {
 
 NAMING = {
     "naming": [
-        {"name": "쉼표", "meaning": "문장을 잠시 멈추는 기호에서 따왔습니다"},
-        {"name": "여백", "meaning": "비어 있음이 곧 쉼이라는 뜻입니다"},
-        {"name": "한 모금", "meaning": "커피 한 모금의 짧은 휴식입니다"},
+        {"name": "쉼표", "english": "Comma", "reading": "COM-ma",
+         "meaning": "문장을 잠시 멈추는 기호에서 따왔습니다"},
+        {"name": "여백", "english": "Yeobaek", "reading": "YEO-baek",
+         "meaning": "비어 있음이 곧 쉼이라는 뜻입니다"},
+        {"name": "모닥", "english": "Modak", "reading": "MO-dak",
+         "meaning": "작지만 확실한 따뜻함을 주는 공간입니다"},
     ],
     "slogans": ["잠깐 멈추셔도 됩니다", "혼자여도 괜찮은 자리", "하루에 한 번, 쉼표"],
     "story": "하루에 한 번은 쉼표가 필요합니다. " * 12,

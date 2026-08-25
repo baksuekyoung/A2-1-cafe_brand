@@ -1,11 +1,9 @@
 """[2] 네이밍 — 규격과 보너스 과제.
 
-명세의 보너스 두 가지를 검증한다.
+명세의 보너스는 둘 중 선택이다. **"다국어 네이밍 지원" 을 택했다.**
+그래서 영문 표기는 **있어야 한다** — 비면 `run_report.md` 에 기록된다.
 
-- 경쟁사 분석 → 차별화 포인트 제안
-- 한글 네이밍과 함께 영문 네이밍을 동시에 생성
-
-보너스는 **없어도 규격 미달이 아니다.** 있으면 결과 문서에 함께 실린다.
+경쟁사 분석은 택하지 않았지만 함께 구현했고, 이쪽은 없어도 규격 미달이 아니다.
 """
 
 import importlib.util
@@ -74,6 +72,61 @@ def test_경쟁사가_없으면_그_줄을_빼고_만든다():
 
 
 # --- 응답 정규화 ---------------------------------------------------------
+
+# --- 보너스: 다국어 네이밍 지원 -----------------------------------------
+
+def test_다국어_규칙이_프롬프트에_실린다():
+    prompt = step2_naming.build_prompt(BRIEF)
+    assert "한글 이름과 영문 표기를 함께" in prompt
+    assert "reading" in prompt
+
+
+def test_영문_표기의_조건이_숫자로_적힌다():
+    """'짧게' 라고 쓰면 모델마다 다르게 읽는다."""
+    assert "12자 안쪽" in step2_naming.MULTILINGUAL_RULE
+
+
+def test_읽는_법도_받아_담는다():
+    result = step2_naming._normalize({
+        "naming": [{"name": "온기", "english": "Ongi", "reading": "OWN-gee",
+                    "meaning": "따뜻한 기운"}],
+    })
+    assert result["naming"][0]["reading"] == "OWN-gee"
+
+
+def test_영문_표기가_비면_규격_위반으로_잡는다():
+    """보너스로 택한 항목이므로 빠지면 기록에 남아야 한다."""
+    naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(3)],
+              "slogans": ["가", "나", "다"], "story": "이" * 250}
+    문제 = validate.check_naming(naming)
+    assert len(문제) == 3
+    assert all("english" in p for p in 문제)
+
+
+def test_영문_자리에_한글이_오면_잡는다():
+    naming = {"naming": [{"name": "온기", "english": "온기", "meaning": "뜻"}] * 3,
+              "slogans": ["가", "나", "다"], "story": "이" * 250}
+    assert any("영문이 아닌" in p for p in validate.check_naming(naming))
+
+
+def test_예시값의_모든_후보에_영문_표기가_있다():
+    for item in step2_naming.EXAMPLE["naming"]:
+        assert item["english"].isascii() and item["english"]
+        assert item["reading"]
+
+
+def test_결과_문서에_읽는_법까지_실린다():
+    text = report._full_name({"name": "온기", "english": "Ongi", "reading": "OWN-gee"})
+    assert text == "온기 (Ongi, OWN-gee)"
+
+
+def test_읽는_법이_없으면_영문만_붙인다():
+    assert report._full_name({"name": "온기", "english": "Ongi"}) == "온기 (Ongi)"
+
+
+def test_영문_표기가_없으면_한글만_쓴다():
+    assert report._full_name({"name": "온기"}) == "온기"
+
 
 def test_영문_표기를_받아_담는다():
     result = step2_naming._normalize({
@@ -207,19 +260,23 @@ def test_키가_없으면_예시로_돈다(monkeypatch):
 
 def test_이름이_여섯_개면_규격_위반():
     """명세는 3~5개를 요구한다."""
-    naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(6)],
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+                         for i in range(6)],
               "slogans": ["가", "나", "다"], "story": "이" * 250}
     assert any("3~5개" in p for p in validate.check_naming(naming))
 
 
-def test_보너스가_없어도_규격을_통과한다():
-    naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(3)],
+def test_경쟁사_분석이_없어도_규격을_통과한다():
+    """경쟁사 분석은 택하지 않은 보너스라 없어도 된다."""
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+                         for i in range(3)],
               "slogans": ["가", "나", "다"], "story": "이" * 250}
     assert validate.check_naming(naming) == []
 
 
 def test_경쟁사_모양이_틀리면_잡는다():
-    naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(3)],
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+                         for i in range(3)],
               "slogans": ["가", "나", "다"], "story": "이" * 250,
               "competitors": "블루보틀"}
     assert any("competitors" in p for p in validate.check_naming(naming))
@@ -235,8 +292,8 @@ def test_예시값이_스스로_규격을_지킨다():
 
 def test_결과_문서에_영문_표기가_함께_실린다():
     text = "\n".join(report._naming_block(step2_naming.EXAMPLE))
-    assert "온기(溫氣) (Ongi)" in text
-    assert "쉼표 (Comma)" in text
+    assert "온기(溫氣) (Ongi, OWN-gee)" in text
+    assert "쉼표 (Comma, COM-ma)" in text
 
 
 def test_결과_문서에_경쟁사_분석_표가_실린다():

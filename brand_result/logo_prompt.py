@@ -25,14 +25,30 @@ import json
 import os
 import urllib.request
 
-# 로고답게 나오게 하는 최소 조건. 길게 쓰면 무료 모델이 흘려버린다.
-STYLE = "flat vector logo mark, minimal, plain white background, no text, centered"
+# 이미지 API 에 넣는 프롬프트. 실제로 돌려 보고 고른 문장이다.
+#
+# 세 가지를 지켜야 글자 없는 로고가 나온다.
+#
+#   1. **"logo" 라는 낱말을 쓰지 않는다.** 모델이 상표를 흉내 내며 밑에 뭉개진
+#      가짜 글씨를 같이 그린다. "icon" · "symbol" · "pictogram" 으로 부른다.
+#   2. **배경을 문장 앞쪽에 못 박는다.** "pure white background" 를 빼면
+#      배경이 브랜드 색으로 칠해져 나온다.
+#   3. **글자 금지를 여러 표현으로 반복한다.** 한 번만 적으면 흘려버린다.
+#
+# 참고: Pollinations 의 `model=flux` 는 차이가 없었다 (같은 프롬프트로
+# 바이트까지 같은 이미지가 나왔다). 결과를 바꾸는 것은 프롬프트 쪽이다.
+STYLE = "minimalist geometric icon"  # 문서·테스트에서 가리키는 대표 낱말
 
 LOGO_COUNT = 2  # 명세는 2~3장을 요구한다
 
-CONCEPTS = (
-    "a simple abstract mark symbolizing {theme}",
-    "a single clean icon representing {theme}, geometric line art",
+PROMPT_TEMPLATES = (
+    "minimalist geometric icon, single abstract symbol suggesting {theme}, "
+    "solid {color} shape on pure white background, flat vector, "
+    "no lettering, no words, no signature, no watermark, centered, lots of white space",
+
+    "simple pictogram, one abstract mark suggesting {theme}, thick even strokes, "
+    "solid {color} on pure white background, flat design, "
+    "wordless, textless, no typography, no letters, no numbers, centered, negative space",
 )
 
 # ChatGPT·Copilot 같은 **대화형** 도구에 넣을 때 쓰는 문장.
@@ -52,9 +68,10 @@ HUMAN_CONCEPTS = (
 HUMAN_TEMPLATE = (
     "Draw {concept}. "
     "Flat vector illustration style, centered in the frame with generous empty space "
-    "around it. Use {color} as the only color, on a plain white background. "
+    "around it. Use {color} as the only color, on a pure white background. "
     "Simple enough to recognize at a small size. "
-    "Do not include any letters, words, or numbers anywhere in the image."
+    "Do not include any letters, words, numbers, signature, or watermark anywhere "
+    "in the image. The mark must be completely wordless."
 )
 
 # 카페 브랜드 브리프에 자주 나오는 낱말. 없는 낱말은 프롬프트에서 뺀다.
@@ -160,19 +177,20 @@ def build_prompts(brief: dict, naming: object = None, palette: object = None,
     """이미지 생성 API 에 그대로 넣을 영어 프롬프트를 만든다.
 
     돌려주는 문자열에는 한국어가 들어가지 않는다.
+
+    **브랜드 이름을 넣지 않는다.** `for a cafe brand called Yeobaek` 처럼 적으면
+    모델이 그 이름을 그림 안에 써 넣으려 하고, 글자를 제대로 못 그려서
+    뭉개진 가짜 글씨가 로고 아래 남는다. 이름은 사람이 나중에 얹으면 된다.
+    `naming` 인자는 호출부 서명을 유지하려고 받되 쓰지 않는다.
     """
     brief = brief if isinstance(brief, dict) else {}
-    industry = to_english(brief.get("industry")) or DEFAULT_INDUSTRY
-    brand = _brand_name(naming)
-    color = _color(palette)
+    color = _color(palette).replace(" color palette", "")
     themes = _themes(brief)
 
     prompts = []
-    for index in range(min(count, len(CONCEPTS))):
+    for index in range(min(count, len(PROMPT_TEMPLATES))):
         theme = themes[index % len(themes)]
-        subject = CONCEPTS[index].format(theme=theme)
-        owner = f"a {industry} brand" + (f" called {brand}" if brand else "")
-        prompts.append(f"{STYLE}, {subject}, for {owner}, {color}")
+        prompts.append(PROMPT_TEMPLATES[index].format(theme=theme, color=color))
     return prompts
 
 
