@@ -65,10 +65,3 @@ samples/시작점/step2_naming.py  →  step2_naming.py   (맨 위 폴더로)
 | `step2_naming.py` | 박연수 | LLM 으로 이름 3개 + 슬로건 + 스토리 |
 | `step3_palette.py` | 미정 | LLM 으로 메인 색 1개 + 서브 색 2개 |
 | `step4_logo.py` | 이예은 | 이미지 생성 API 로 로고 2장 |
-
----
-
-## 막히면
-
-`#일반` 채널에 말씀해 주세요. 규격이 불편하면 **규격을 고치는 게 맞습니다.**
-코딩 전에 고치는 게 훨씬 쌉니다.
