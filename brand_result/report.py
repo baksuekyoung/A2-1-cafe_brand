@@ -110,11 +110,11 @@ def _naming_block(naming: dict | None) -> list[str]:
     names = naming.get("naming") or []
     if names:
         first = names[0]
-        lines += [f"**{first.get('name', '')}**", "", f"> {first.get('meaning', '')}", ""]
+        lines += [f"**{_full_name(first)}**", "", f"> {first.get('meaning', '')}", ""]
         if len(names) > 1:
             lines += ["다른 후보", ""]
             lines += [
-                f"- {item.get('name', '')} — {item.get('meaning', '')}" for item in names[1:]
+                f"- {_full_name(item)} — {item.get('meaning', '')}" for item in names[1:]
             ]
             lines.append("")
 
@@ -128,7 +128,36 @@ def _naming_block(naming: dict | None) -> list[str]:
     if story:
         lines += ["### 브랜드 스토리", "", story, "", f"*{len(story)}자*", ""]
 
+    lines += _competitor_block(naming.get("competitors"))
     return lines or ["_내용이 비어 있습니다._", ""]
+
+
+def _full_name(item: dict) -> str:
+    """한글 이름에 영문 표기를 붙인다 (보너스 — 다국어 네이밍)."""
+    if not isinstance(item, dict):
+        return ""
+    name = str(item.get("name") or "").strip()
+    english = str(item.get("english") or "").strip()
+    return f"{name} ({english})" if name and english else name or english
+
+
+def _competitor_block(competitors: object) -> list[str]:
+    """보너스 — 경쟁사별 차별화 포인트를 표로 낸다."""
+    if not isinstance(competitors, list):
+        return []  # [2] 가 엉뚱한 값을 줘도 문서 생성은 계속되어야 한다
+    rows = [c for c in competitors if isinstance(c, dict) and c.get("competitor")]
+    if not rows:
+        return []
+
+    lines = ["### 경쟁사 분석과 차별화 포인트", "",
+             "| 경쟁사 | 시장에서의 자리 | 우리가 다르게 갈 지점 |",
+             "| --- | --- | --- |"]
+    for row in rows:
+        cells = [str(row.get(key, "")).replace("|", "/")
+                 for key in ("competitor", "position", "differentiation")]
+        lines.append("| " + " | ".join(cells) + " |")
+    lines.append("")
+    return lines
 
 
 def _palette_block(palette: dict | None) -> list[str]:

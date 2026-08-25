@@ -18,6 +18,7 @@ OPTIONAL_BRIEF_KEYS = ["tone", "competitors", "notes"]
 
 MIN_KEYWORDS = 2
 MIN_NAMES = 3
+MAX_NAMES = 5  # 명세: 브랜드명 후보 3~5개
 MIN_SLOGANS = 3
 MIN_STORY_CHARS = 200
 MIN_SUBS = 2
@@ -30,7 +31,7 @@ def _missing_keys(data: dict, keys: list[str], where: str) -> list[str]:
 def check_brief(brief: object) -> list[str]:
     """[1] 브랜드 브리프를 검사한다.
 
-    규격은 김준오님이 `#1단계` 채널(2026-08-25)에 올린 `brief_example.json` 을 따른다.
+    규격은 `docs/데이터-계약.md` 의 [1] 절을 따른다.
     선택 필드는 [1] 에서 기본값을 채워 넘기므로, 여기서는 **타입만** 본다.
     """
     if not isinstance(brief, dict):
@@ -73,9 +74,10 @@ def check_naming(naming: object) -> list[str]:
 
     names = naming.get("naming")
     if isinstance(names, list):
-        if len(names) < MIN_NAMES:
+        if not MIN_NAMES <= len(names) <= MAX_NAMES:
             problems.append(
-                f"[2] naming: naming 이 {len(names)}개입니다 ({MIN_NAMES}개 이상 필요)"
+                f"[2] naming: naming 이 {len(names)}개입니다 "
+                f"({MIN_NAMES}~{MAX_NAMES}개 필요)"
             )
         for index, item in enumerate(names, start=1):
             if not isinstance(item, dict):
@@ -97,6 +99,19 @@ def check_naming(naming: object) -> list[str]:
                 problems.append(f"[2] naming: slogans[{index}] 가 빈 문자열입니다")
     elif "slogans" in naming:
         problems.append("[2] naming: slogans 가 문자열 배열이어야 합니다")
+
+    # 보너스 — 없어도 규격 미달이 아니다. 있는데 모양이 틀린 것만 잡는다.
+    competitors = naming.get("competitors")
+    if competitors is not None and not isinstance(competitors, list):
+        problems.append("[2] naming: competitors 가 list 가 아닙니다")
+    elif isinstance(competitors, list):
+        for index, item in enumerate(competitors, start=1):
+            if not isinstance(item, dict):
+                problems.append(f"[2] naming: competitors[{index}] 가 dict 가 아닙니다")
+            elif not str(item.get("differentiation") or "").strip():
+                problems.append(
+                    f"[2] naming: competitors[{index}] 에 differentiation 이 비어 있습니다"
+                )
 
     story = naming.get("story")
     if isinstance(story, str) and len(story) < MIN_STORY_CHARS:

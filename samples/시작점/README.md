@@ -62,6 +62,6 @@ samples/시작점/step2_naming.py  →  step2_naming.py   (맨 위 폴더로)
 | 파일 | 담당 | 안에서 할 일 |
 | --- | --- | --- |
 | `step1_brief.py` | 미정 | `samples/brief.json` 을 읽어 돌려주기 (거의 다 돼 있음) |
-| `step2_naming.py` | 박연수 | LLM 으로 이름 3개 + 슬로건 + 스토리 |
+| `step2_naming.py` | LLM 으로 이름 3개 + 슬로건 + 스토리 |
 | `step3_palette.py` | 미정 | LLM 으로 메인 색 1개 + 서브 색 2개 |
-| `step4_logo.py` | 이예은 | 이미지 생성 API 로 로고 2장 |
+| `step4_logo.py` | 이미지 생성 API 로 로고 2장 |

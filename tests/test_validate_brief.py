@@ -1,4 +1,4 @@
-"""[1] 브리프 규격 검증 — 김준오님 명세(#1단계, 2026-08-25)를 기준으로 한다.
+"""[1] 브리프 규격 검증 — `docs/데이터-계약.md` 의 [1] 절을 기준으로 한다.
 
 `brand_name_hint` · `extra` 를 쓰던 옛 규격으로 되돌아가면 여기서 걸린다.
 """
@@ -16,7 +16,7 @@ def test_샘플_브리프가_규격을_통과한다():
     assert validate.check_brief(brief) == []
 
 
-def test_샘플_브리프가_김준오님_여섯_필드를_그대로_쓴다():
+def test_샘플_브리프가_규격의_여섯_필드를_그대로_쓴다():
     brief = json.loads(SAMPLE_PATH.read_text(encoding="utf-8"))
     assert set(brief) == {"industry", "target", "keywords", "tone", "competitors", "notes"}
     # 옛 규격의 흔적이 남아 있으면 안 된다

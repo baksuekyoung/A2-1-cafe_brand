@@ -1,4 +1,4 @@
-"""[2] 네이밍 · 슬로건 · 스토리 — 담당: 박연수
+"""[2] 네이밍 · 슬로건 · 스토리
 
 브리프를 받아 브랜드명 후보·슬로건·브랜드 스토리를 생성한다.
 
@@ -25,29 +25,33 @@ except ImportError:  # python-dotenv 를 안 깔았어도 돌아가야 한다
     def load_dotenv(*_args, **_kwargs) -> bool:
         return False
 
-# `docs/팀자료/박연수_sample_output.json` 의 내용을 그대로 쓴다.
-# 임의로 지어낸 값이 아니라 [2] 담당자가 실제로 제출한 결과다.
+# `docs/참고자료/sample_output.json` 의 내용에 보너스 항목(영문 표기·경쟁사 분석)을 더한 것.
 EXAMPLE = {
         "naming": [
             {
                 "name": "온기(溫氣)",
-                "meaning": "따뜻한 기운이라는 뜻으로, 커피 한 잔이 주는 온기와 사람 사이의 따뜻함을 동시에 담았습니다."
+                "meaning": "따뜻한 기운이라는 뜻으로, 커피 한 잔이 주는 온기와 사람 사이의 따뜻함을 동시에 담았습니다.",
+                "english": "Ongi"
             },
             {
                 "name": "쉼표",
-                "meaning": "바쁜 일상 속 잠깐 멈추는 순간을 뜻합니다. 문장 속 쉼표처럼, 삶의 리듬을 조율하는 공간을 표현합니다."
+                "meaning": "바쁜 일상 속 잠깐 멈추는 순간을 뜻합니다. 문장 속 쉼표처럼, 삶의 리듬을 조율하는 공간을 표현합니다.",
+                "english": "Comma"
             },
             {
                 "name": "모닥",
-                "meaning": "모닥불의 줄임말로, 작지만 확실한 따뜻함을 주는 공간이라는 의미를 담았습니다."
+                "meaning": "모닥불의 줄임말로, 작지만 확실한 따뜻함을 주는 공간이라는 의미를 담았습니다.",
+                "english": "Modak"
             },
             {
                 "name": "한뼘",
-                "meaning": "아주 작은 여유라도 충분하다는 뜻입니다. 바쁜 하루 중 한 뼘만큼의 쉬어가는 시간을 선물합니다."
+                "meaning": "아주 작은 여유라도 충분하다는 뜻입니다. 바쁜 하루 중 한 뼘만큼의 쉬어가는 시간을 선물합니다.",
+                "english": "Hanppyeom"
             },
             {
                 "name": "노을목",
-                "meaning": "노을이 지는 시간, 하루를 마무리하며 잠시 머무는 장소라는 의미입니다."
+                "meaning": "노을이 지는 시간, 하루를 마무리하며 잠시 머무는 장소라는 의미입니다.",
+                "english": "Noeulmok"
             }
         ],
         "slogans": [
@@ -55,7 +59,19 @@ EXAMPLE = {
             "한 잔의 온기가 하루를 바꿉니다.",
             "당신의 일상에 쉼표 하나를 더해드립니다."
         ],
-        "story": "온기는 '커피 한 잔이 사람을 연결한다'는 믿음에서 시작되었습니다. 빠르게 흘러가는 일상 속에서 우리는 종종 멈추는 법을 잊습니다. 온기는 그 잠깐의 멈춤이 얼마나 소중한지 알기에, 누구나 편안하게 앉아 숨을 고를 수 있는 공간을 만들었습니다. 좋은 원두, 정성스러운 한 잔, 그리고 따뜻한 공간. 온기는 오늘도 당신의 하루 한가운데 조용히 자리합니다."
+        "story": "온기는 '커피 한 잔이 사람을 연결한다'는 믿음에서 시작되었습니다. 빠르게 흘러가는 일상 속에서 우리는 종종 멈추는 법을 잊습니다. 점심시간의 카페는 늘 붐비고, 혼자 온 사람은 자리를 잡기도 전에 눈치를 봅니다. 온기는 그 잠깐의 멈춤이 얼마나 소중한지 알기에, 누구나 편안하게 앉아 숨을 고를 수 있는 공간을 만들었습니다. 빨리 나가는 한 잔과 오래 앉는 한 자리를 따로 두고, 혼자 온 손님을 위한 일인석을 넉넉히 놓았습니다. 좋은 원두, 정성스러운 한 잔, 그리고 따뜻한 공간. 온기는 오늘도 당신의 하루 한가운데 조용히 자리하며, 이 도시에서 가장 편하게 쉬어 갈 수 있는 이름이 되려 합니다.",
+        "competitors": [
+            {
+                "competitor": "블루보틀",
+                "position": "느린 추출과 절제된 공간으로 커피 자체에 집중하게 하는 스페셜티 브랜드입니다.",
+                "differentiation": "우리는 커피의 완성도보다 '앉아 있어도 되는 시간'을 팔아, 혼자 온 직장인이 눈치 보지 않는 자리를 만듭니다."
+            },
+            {
+                "competitor": "스타벅스",
+                "position": "어디서나 같은 맛과 빠른 회전으로 도시의 기본값이 된 대형 체인입니다.",
+                "differentiation": "우리는 표준화 대신 동네의 결을 남겨, '일상의 쉼표'라는 키워드를 매장 구성과 좌석 배치로 그대로 옮깁니다."
+            }
+        ]
     }
 
 
@@ -70,6 +86,9 @@ NAMING_RULE = (
     "  (4) 속성 강조형 — 메가(대용량). 핵심 강점을 이름에 직접 심음\n"
     "  (5) 지명·역사형 — 이디야(에티오피아 부족), 빽다방(옛 다방 정서)\n"
     "meaning 에는 이름의 뜻과 유래를 한 문장으로 씁니다.\n"
+    "english 에는 같은 이름의 영문 표기를 씁니다. 간판·도메인·SNS 계정에 그대로\n"
+    "쓸 수 있어야 하므로, 소리 나는 대로 옮기거나 뜻이 통하는 영어 낱말로 짓습니다.\n"
+    "(예: 온기 → Ongi, 쉼표 → Comma) 영문만 12자 안쪽으로 짧게 씁니다.\n"
     "이미 널리 쓰이는 유명 브랜드명은 피합니다.\n"
     "가장 좋다고 판단한 후보를 맨 앞에 놓으세요."
 )
@@ -91,10 +110,23 @@ STORY_RULE = (
     "광고 문구가 아니라 설명하는 글로 씁니다."
 )
 
+# 보너스 — 입력된 경쟁사를 분석해 차별화 포인트를 제안한다.
+COMPETITOR_RULE = (
+    "브리프에 적힌 경쟁사를 하나씩 짚어 차별화 포인트를 제안하세요.\n"
+    "경쟁사마다 아래 세 가지를 씁니다.\n"
+    "  - competitor: 경쟁사 이름\n"
+    "  - position: 그 브랜드가 시장에서 차지한 자리를 한 문장으로\n"
+    "  - differentiation: 우리가 다르게 갈 지점을 한 문장으로. 막연한 말 대신\n"
+    "    이 브리프의 타깃·키워드에 근거해 구체적으로 씁니다.\n"
+    "경쟁사가 없으면 competitors 를 빈 배열로 두세요."
+)
+
 RESPONSE_SHAPE = (
-    '{"naming": [{"name": "이름", "meaning": "뜻"}], '
+    '{"naming": [{"name": "한글 이름", "english": "영문 표기", "meaning": "뜻"}], '
     '"slogans": ["슬로건1", "슬로건2", "슬로건3"], '
-    '"story": "300자 내외의 브랜드 스토리"}'
+    '"story": "300자 내외의 브랜드 스토리", '
+    '"competitors": [{"competitor": "경쟁사", "position": "시장에서의 자리", '
+    '"differentiation": "우리가 다르게 갈 지점"}]}'
 )
 
 # 무료·저가 티어에서 막히는 모델이 있어 앞에서부터 시도하고 되는 것을 쓴다.
@@ -124,7 +156,7 @@ def build_prompt(brief: dict) -> str:
     if brief.get("notes"):
         lines.append(f"추가 요청: {brief['notes']}")
 
-    lines += ["", NAMING_RULE, "", SLOGAN_RULE, "", STORY_RULE, "",
+    lines += ["", NAMING_RULE, "", SLOGAN_RULE, "", STORY_RULE, "", COMPETITOR_RULE, "",
               f"아래 JSON 형식으로만 답하세요. 다른 말은 붙이지 마세요.\n{RESPONSE_SHAPE}"]
     return "\n".join(lines)
 
@@ -173,14 +205,34 @@ def _normalize(data: dict) -> dict:
         elif isinstance(item, dict):
             name = str(item.get("name") or item.get("korean") or "").strip()
             if name:
-                naming.append({"name": name, "meaning": str(item.get("meaning") or "").strip()})
+                naming.append({
+                    "name": name,
+                    # 보너스 — 한글과 영문 네이밍을 함께 낸다.
+                    "english": str(item.get("english") or item.get("en") or "").strip(),
+                    "meaning": str(item.get("meaning") or "").strip(),
+                })
 
     slogans = data.get("slogans")
     if isinstance(slogans, str):
         slogans = [slogans]  # 하나만 준 경우
     slogans = [str(s).strip() for s in (slogans or []) if str(s).strip()]
 
-    return {"naming": naming, "slogans": slogans, "story": str(data.get("story") or "").strip()}
+    # 보너스 — 경쟁사 분석. 셋 다 채워진 항목만 남긴다.
+    competitors = []
+    for item in data.get("competitors") or []:
+        if not isinstance(item, dict):
+            continue
+        entry = {key: str(item.get(key) or "").strip()
+                 for key in ("competitor", "position", "differentiation")}
+        if entry["competitor"] and entry["differentiation"]:
+            competitors.append(entry)
+
+    return {
+        "naming": naming,
+        "slogans": slogans,
+        "story": str(data.get("story") or "").strip(),
+        "competitors": competitors,
+    }
 
 
 def generate_naming(brief: dict) -> dict:
