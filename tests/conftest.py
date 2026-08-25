@@ -16,12 +16,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 BRIEF = {
-    "brand_name_hint": "쉼표",
     "industry": "성지순례 안내",
     "target": "40-70대 신자와 조용한 여행을 찾는 20-30대",
     "keywords": ["고요", "순례", "치유"],
     "tone": "차분하고 경건한",
-    "extra": "",
+    "competitors": ["블루보틀"],
+    "notes": "",
 }
 
 NAMING = {

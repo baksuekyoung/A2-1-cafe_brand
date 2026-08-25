@@ -13,6 +13,9 @@ import re
 
 HEX_PATTERN = re.compile(r"^#[0-9A-F]{6}$")
 
+REQUIRED_BRIEF_KEYS = ["industry", "target", "keywords"]
+OPTIONAL_BRIEF_KEYS = ["tone", "competitors", "notes"]
+
 MIN_KEYWORDS = 2
 MIN_NAMES = 3
 MIN_SLOGANS = 3
@@ -25,12 +28,21 @@ def _missing_keys(data: dict, keys: list[str], where: str) -> list[str]:
 
 
 def check_brief(brief: object) -> list[str]:
-    """[1] 브랜드 브리프를 검사한다."""
+    """[1] 브랜드 브리프를 검사한다.
+
+    규격은 김준오님이 `#1단계` 채널(2026-08-25)에 올린 `brief_example.json` 을 따른다.
+    선택 필드는 [1] 에서 기본값을 채워 넘기므로, 여기서는 **타입만** 본다.
+    """
     if not isinstance(brief, dict):
         return ["[1] brief 가 dict 가 아닙니다"]
 
-    required = ["brand_name_hint", "industry", "target", "keywords", "tone", "extra"]
-    problems = _missing_keys(brief, required, "[1] brief")
+    problems = _missing_keys(brief, REQUIRED_BRIEF_KEYS, "[1] brief")
+
+    # 키는 있는데 값이 비어 있으면 [2] 프롬프트가 빈칸으로 나간다. 잡아 둔다.
+    for key in ("industry", "target"):
+        value = brief.get(key)
+        if isinstance(value, str) and not value.strip():
+            problems.append(f"[1] brief: {key} 가 비어 있습니다")
 
     keywords = brief.get("keywords")
     if isinstance(keywords, list):
@@ -41,6 +53,13 @@ def check_brief(brief: object) -> list[str]:
             )
     elif "keywords" in brief:
         problems.append("[1] brief: keywords 가 list 가 아닙니다")
+
+    # 선택 필드 — 없는 건 괜찮지만, 있는데 타입이 다르면 [2] 가 터진다.
+    if "competitors" in brief and not isinstance(brief["competitors"], list):
+        problems.append("[1] brief: competitors 가 list 가 아닙니다")
+    for key in ("tone", "notes"):
+        if key in brief and not isinstance(brief[key], str):
+            problems.append(f"[1] brief: {key} 가 문자열이 아닙니다")
 
     return problems
 
