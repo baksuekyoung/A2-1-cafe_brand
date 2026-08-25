@@ -129,7 +129,7 @@ step4_logo.py              [4] generate_logos(brief, naming, palette) -> list
 python -m pytest -q
 ```
 
-89개. 전부 실패 상황을 검증합니다.
+95개. 전부 실패 상황을 검증합니다.
 
 ## 문서
 

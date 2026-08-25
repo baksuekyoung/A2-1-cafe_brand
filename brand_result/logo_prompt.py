@@ -35,6 +35,28 @@ CONCEPTS = (
     "a single clean icon representing {theme}, geometric line art",
 )
 
+# ChatGPT·Copilot 같은 **대화형** 도구에 넣을 때 쓰는 문장.
+#
+# 위의 쉼표 나열식(tag) 프롬프트는 Stable Diffusion 계열 API 용이다.
+# 대화형 도구에 그대로 넣으면 두 가지 이유로 그림이 안 나온다.
+#
+#   1. "logo for a brand called OO" 는 상표 정책에 걸려 거절당하는 일이 잦다.
+#      → 브랜드 이름을 빼고 '아이콘·심볼' 을 설명한다.
+#   2. 쉼표로 나열한 낱말 뭉치를 지시문으로 읽고 되묻기만 한다.
+#      → 온전한 문장으로 쓴다.
+HUMAN_CONCEPTS = (
+    "a minimalist abstract symbol that suggests {theme}",
+    "a single clean geometric icon that suggests {theme}, drawn in thin even lines",
+)
+
+HUMAN_TEMPLATE = (
+    "Draw {concept}. "
+    "Flat vector illustration style, centered in the frame with generous empty space "
+    "around it. Use {color} as the only color, on a plain white background. "
+    "Simple enough to recognize at a small size. "
+    "Do not include any letters, words, or numbers anywhere in the image."
+)
+
 # 카페 브랜드 브리프에 자주 나오는 낱말. 없는 낱말은 프롬프트에서 뺀다.
 KOREAN_TO_ENGLISH = {
     # 업종
@@ -154,6 +176,29 @@ def build_prompts(brief: dict, naming: object = None, palette: object = None,
     return prompts
 
 
+def build_human_prompts(brief: dict, palette: object = None,
+                        count: int = LOGO_COUNT) -> list[str]:
+    """ChatGPT 같은 **대화형** 도구에 넣을 프롬프트를 만든다.
+
+    `build_prompts()` 와 다른 점 두 가지.
+
+    - **브랜드 이름을 넣지 않는다.** "logo for a brand called OO" 는 상표 정책에
+      걸려 거절당하는 일이 잦다. 이름은 나중에 사람이 얹으면 된다.
+    - **온전한 문장으로 쓴다.** 쉼표로 나열한 낱말 뭉치를 넣으면 그림을 그리지
+      않고 무엇을 원하는지 되묻기만 한다.
+    """
+    brief = brief if isinstance(brief, dict) else {}
+    color = _color(palette).replace(" color palette", "")
+    themes = _themes(brief)
+
+    prompts = []
+    for index in range(min(count, len(HUMAN_CONCEPTS))):
+        theme = themes[index % len(themes)]
+        concept = HUMAN_CONCEPTS[index].format(theme=theme)
+        prompts.append(HUMAN_TEMPLATE.format(concept=concept, color=color))
+    return prompts
+
+
 def translate_with_llm(brief: dict, naming: object, palette: object,
                        count: int = LOGO_COUNT) -> list[str] | None:
     """LLM 에게 영어 프롬프트를 짓게 한다. 키가 없거나 실패하면 None.
@@ -217,27 +262,61 @@ def make_prompts(brief: dict, naming: object = None, palette: object = None,
         build_prompts(brief, naming, palette, count)
 
 
-def build_markdown(prompts: list[str], sources: list[str] | None = None) -> str:
+SOURCE_LABEL = {
+    "openai": "OpenAI 이미지 API",
+    "gemini": "Gemini 이미지 API",
+    "pollinations": "Pollinations (무료)",
+    "placeholder": "생성 실패 — 자리표시자",
+}
+
+
+def build_markdown(prompts: list[str], sources: list[str] | None = None,
+                   human_prompts: list[str] | None = None) -> str:
     """`logo_prompts.md` 본문을 만든다.
 
-    이미지 생성이 실패해도 이 파일만 있으면 사람이 직접 만들 수 있다.
+    이미지 생성이 실패하거나 결과가 마음에 안 들어도 이 파일만 있으면
+    사람이 직접 만들 수 있다.
     """
     lines = [
         "# 로고 시안 프롬프트",
         "",
-        "이미지 생성 API 에 넣은 영어 프롬프트입니다.",
-        "직접 만드시려면 아래를 그대로 복사해 이미지 생성 도구에 붙여 넣으십시오.",
+        "> 한국어를 이미지 도구에 그대로 넘기면 로고가 아니라 인물 사진이 나오는 일이",
+        "> 있어, 브리프를 영어 장면 묘사로 옮겨 적었습니다.",
         "",
-        "> 한국어를 그대로 넘기면 로고가 아니라 인물 사진이 나오는 일이 있어,",
-        "> 브리프를 영어 장면 묘사로 옮겨 넣습니다.",
+    ]
+
+    if human_prompts:
+        lines += [
+            "## 직접 만드실 때 (ChatGPT · Copilot 등)",
+            "",
+            "아래 문장을 **그대로 복사해서** 채팅창에 붙여 넣으십시오.",
+            "",
+            "> 브랜드 이름은 일부러 넣지 않았습니다.",
+            "> `logo for a brand called ...` 처럼 쓰면 상표 정책에 걸려 거절당합니다.",
+            "> 심볼을 먼저 받고, 이름은 그 위에 얹으시면 됩니다.",
+            "",
+        ]
+        for index, prompt in enumerate(human_prompts, start=1):
+            lines += [f"### 시안 {index}", "", "```text", prompt, "```", ""]
+        lines += [
+            "마음에 드는 그림이 나오면 `logo_01.png` · `logo_02.png` 로 저장해",
+            "이 폴더에 넣으십시오. 결과 문서에 그대로 실립니다.",
+            "",
+            "---",
+            "",
+        ]
+
+    lines += [
+        "## 프로그램이 이미지 API 에 넣은 프롬프트",
+        "",
+        "쉼표로 나열한 형식입니다. **API 전용**이라 대화형 도구에 넣으면",
+        "그림을 그리지 않고 무엇을 원하는지 되묻습니다.",
         "",
     ]
     for index, prompt in enumerate(prompts, start=1):
-        lines += [f"## 시안 {index}", ""]
+        lines += [f"### 시안 {index}", ""]
         if sources and index <= len(sources):
-            label = {"openai": "OpenAI 이미지 API",
-                     "pollinations": "Pollinations (무료)",
-                     "placeholder": "생성 실패 — 자리표시자"}.get(sources[index - 1], sources[index - 1])
+            label = SOURCE_LABEL.get(sources[index - 1], sources[index - 1])
             lines += [f"생성: {label}", ""]
         lines += ["```text", prompt, "```", ""]
     return "\n".join(lines)

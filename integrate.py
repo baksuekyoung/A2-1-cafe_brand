@@ -84,9 +84,13 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
         prompts = [str(item.get("prompt", "")) for item in logos if isinstance(item, dict)]
         sources = [str(item.get("source", "")) for item in logos if isinstance(item, dict)]
         if any(prompts):
+            # 사람이 직접 만들 때 쓸 문장도 함께 낸다. API 용 프롬프트를 그대로
+            # ChatGPT 에 넣으면 그림이 안 나온다 (형식도 다르고 상표 정책에도 걸린다).
+            human = logo_prompt.build_human_prompts(
+                payload.get("brief") or {}, payload.get("palette"), len(prompts))
             writers += (("logo_prompts.md",
                          lambda: _write(output_dir / "logo_prompts.md",
-                                        logo_prompt.build_markdown(prompts, sources))),)
+                                        logo_prompt.build_markdown(prompts, sources, human))),)
 
     if isinstance(payload.get("palette"), dict):
         # 명세가 요구하는 산출물이다 — "컬러 팔레트를 시각화하여 PNG 이미지로 저장".

@@ -124,6 +124,46 @@ def test_명세가_요구하는_장수만큼_만든다():
     assert 2 <= len(logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)) <= 3
 
 
+# --- 사람이 직접 쓸 프롬프트 -------------------------------------------
+
+def test_직접_쓸_프롬프트에는_브랜드_이름이_없다():
+    """'logo for a brand called OO' 는 상표 정책에 걸려 거절당한다."""
+    for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
+        assert "called" not in prompt
+        assert "brand" not in prompt.lower()
+
+
+def test_직접_쓸_프롬프트는_문장으로_되어_있다():
+    """쉼표 나열식을 대화형 도구에 넣으면 그림을 안 그리고 되묻는다."""
+    for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
+        assert prompt.startswith("Draw ")
+        assert prompt.rstrip().endswith(".")
+
+
+def test_직접_쓸_프롬프트에도_한국어가_없다():
+    for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
+        assert all(ord(char) < 128 for char in prompt), prompt
+
+
+def test_직접_쓸_프롬프트에_글자_금지가_들어간다():
+    """넣지 않으면 로고 안에 깨진 글씨가 같이 나온다."""
+    for prompt in logo_prompt.build_human_prompts(BRIEF, PALETTE):
+        assert "Do not include any letters" in prompt
+
+
+def test_직접_쓸_프롬프트에_색_이름이_들어간다():
+    assert "roasted coffee brown" in logo_prompt.build_human_prompts(BRIEF, PALETTE)[0]
+
+
+def test_문서가_두_가지_프롬프트를_모두_담는다():
+    api = logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)
+    human = logo_prompt.build_human_prompts(BRIEF, PALETTE)
+    text = logo_prompt.build_markdown(api, ["pollinations", "pollinations"], human)
+    assert "직접 만드실 때" in text
+    for prompt in api + human:
+        assert prompt in text
+
+
 def test_프롬프트_문서에_프롬프트가_그대로_담긴다():
     prompts = logo_prompt.build_prompts(BRIEF, NAMING, PALETTE)
     text = logo_prompt.build_markdown(prompts, ["placeholder", "placeholder"])
