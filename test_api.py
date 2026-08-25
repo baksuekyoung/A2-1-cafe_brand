@@ -4,46 +4,120 @@
 
 간단한 메시지를 보내 API 키·인터넷·호출 권한이 정상인지 확인한다.
 브랜드 생성을 돌리기 전에 이것부터 통과시키는 편이 빠르다.
+
+`.env` 에 `OPENAI_API_KEY` 또는 `GEMINI_API_KEY` 중 하나만 있으면 된다.
 """
 
+import json
 import os
 import sys
+import urllib.error
+import urllib.request
+from pathlib import Path
 
 for _stream in (sys.stdout, sys.stderr):
     if hasattr(_stream, "reconfigure"):
         _stream.reconfigure(encoding="utf-8", errors="replace")
 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 
-def main() -> int:
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
+GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
+OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
+
+QUESTION = "안녕! 테스트야."
+
+자리표시자 = {"", "your-api-key", "본인의_API_키", "sk-여기에본인키입력"}
+
+
+def _load_env() -> None:
     try:
         from dotenv import load_dotenv
-        from openai import OpenAI
-    except ImportError as exc:
-        print(f"❌ 패키지가 없습니다 ({exc.name})")
-        print("   pip install -r requirements.txt")
-        return 1
-
-    load_dotenv()
-    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
-    if not api_key or api_key == "본인의_API_키":
-        print("❌ OPENAI_API_KEY 가 없습니다.")
-        print("   .env.example 을 .env 로 복사한 뒤 키를 채워 주십시오.")
-        return 1
-
+    except ImportError:
+        return
     try:
-        client = OpenAI(api_key=api_key)
-        response = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[{"role": "user", "content": "안녕! 테스트야."}],
-            timeout=30,
+        load_dotenv(ENV_PATH)
+    except Exception:
+        pass  # .env 가 없어도 환경변수로 넣었을 수 있다
+
+
+def _key(name: str) -> str:
+    value = (os.environ.get(name) or "").strip()
+    return "" if value in 자리표시자 else value
+
+
+def check_openai(api_key: str) -> tuple[bool, str]:
+    try:
+        from openai import OpenAI
+    except ImportError:
+        return False, "openai 패키지가 없습니다 (pip install -r requirements.txt)"
+
+    client = OpenAI(api_key=api_key)
+    시도 = []
+    for model in OPENAI_MODELS:
+        try:
+            response = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": QUESTION}],
+                timeout=30,
+            )
+            return True, f"{model} → {(response.choices[0].message.content or '').strip()[:40]}"
+        except Exception as exc:
+            시도.append(f"{model}={type(exc).__name__}")
+    return False, " / ".join(시도)
+
+
+def check_gemini(api_key: str) -> tuple[bool, str]:
+    body = json.dumps({"contents": [{"parts": [{"text": QUESTION}]}]}).encode("utf-8")
+    시도 = []
+    for model in GEMINI_MODELS:
+        request = urllib.request.Request(
+            GEMINI_URL.format(model=model),
+            data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
         )
-    except Exception as exc:
-        print(f"❌ 호출에 실패했습니다: {type(exc).__name__}: {exc}")
+        try:
+            with urllib.request.urlopen(request, timeout=30) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            parts = payload["candidates"][0]["content"]["parts"]
+            text = "".join(part.get("text", "") for part in parts).strip()
+            return True, f"{model} → {text[:40]}"
+        except urllib.error.HTTPError as exc:
+            시도.append(f"{model}=HTTP {exc.code}")
+        except Exception as exc:
+            시도.append(f"{model}={type(exc).__name__}")
+    return False, " / ".join(시도)
+
+
+def main() -> int:
+    _load_env()
+    공급자 = [("OpenAI", _key("OPENAI_API_KEY"), check_openai),
+              ("Gemini", _key("GEMINI_API_KEY"), check_gemini)]
+
+    있는키 = [(이름, 키, 검사) for 이름, 키, 검사 in 공급자 if 키]
+    if not 있는키:
+        print("❌ API 키가 없습니다.")
+        print("   .env.example 을 .env 로 복사한 뒤")
+        print("   OPENAI_API_KEY 또는 GEMINI_API_KEY 중 하나를 채워 주십시오.")
+        print()
+        print("   키가 없어도 python main.py 는 예시 값으로 돌아갑니다.")
         return 1
 
-    print("✅ 연결 성공")
-    print(f"   응답: {response.choices[0].message.content}")
-    return 0
+    성공 = False
+    for 이름, 키, 검사 in 있는키:
+        됨, 설명 = 검사(키)
+        print(f"  {'✅' if 됨 else '❌'} {이름}: {설명}")
+        성공 = 성공 or 됨
+
+    print()
+    if 성공:
+        print("✅ 연결 성공 — python main.py 를 돌리면 실제 결과가 나옵니다.")
+        return 0
+    print("❌ 키는 있으나 호출에 실패했습니다. 키 값과 결제·쿼터 상태를 확인해 주십시오.")
+    return 1
 
 
 if __name__ == "__main__":

@@ -18,12 +18,16 @@ from __future__ import annotations
 
 import json
 import os
+import urllib.request
+from pathlib import Path
 
 try:
     from dotenv import load_dotenv
 except ImportError:  # python-dotenv 를 안 깔았어도 돌아가야 한다
     def load_dotenv(*_args, **_kwargs) -> bool:
         return False
+
+ENV_PATH = Path(__file__).resolve().parent / ".env"
 
 # `docs/참고자료/sample_output.json` 의 내용에 보너스 항목(영문 표기·경쟁사 분석)을 더한 것.
 EXAMPLE = {
@@ -102,11 +106,13 @@ SLOGAN_RULE = (
 )
 
 STORY_RULE = (
-    "브랜드 스토리를 300자 내외(최소 200자)로 쓰세요.\n"
+    "브랜드 스토리를 **280자에서 320자 사이**로 쓰세요. 이 범위를 반드시 지킵니다.\n"
+    "짧게 쓰면 규격 미달로 잡힙니다. 다 쓴 뒤 글자 수를 세어 보고 모자라면 늘리세요.\n"
     "명세가 요구하는 세 가지를 모두 담습니다.\n"
     "  (1) 탄생 배경 — 타깃이 겪는 불편에서 시작해 왜 이 브랜드를 만들었는가\n"
     "  (2) 철학 — 그래서 무엇을 지키기로 했는가\n"
     "  (3) 비전 — 앞으로 어떤 자리가 되려 하는가\n"
+    "세 가지에 각각 두세 문장씩 쓰면 자연스럽게 300자가 됩니다.\n"
     "광고 문구가 아니라 설명하는 글로 씁니다."
 )
 
@@ -130,7 +136,12 @@ RESPONSE_SHAPE = (
 )
 
 # 무료·저가 티어에서 막히는 모델이 있어 앞에서부터 시도하고 되는 것을 쓴다.
-MODELS = ("gpt-4o-mini", "gpt-4o")
+OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
+GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
+
+GEMINI_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
 
 
 def build_prompt(brief: dict) -> str:
@@ -161,6 +172,43 @@ def build_prompt(brief: dict) -> str:
     return "\n".join(lines)
 
 
+def _call_gemini(prompt: str, api_key: str) -> dict:
+    """Gemini 를 불러 JSON 을 받아 온다.
+
+    `openai` 패키지 없이 표준 라이브러리만으로 부른다.
+
+    Raises:
+        RuntimeError: 모델을 하나도 못 쓴 경우.
+    """
+    body = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {"responseMimeType": "application/json"},
+    }).encode("utf-8")
+
+    시도 = []
+    for model in GEMINI_MODELS:
+        request = urllib.request.Request(
+            GEMINI_URL.format(model=model),
+            data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=90) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            parts = payload["candidates"][0]["content"]["parts"]
+            data = json.loads("".join(p.get("text", "") for p in parts))
+        except Exception as exc:  # 쿼터·권한·안전필터·JSON 깨짐을 한데 묶는다
+            시도.append(f"{model}={type(exc).__name__}")
+            continue  # 이 모델은 못 쓴다. 다음 후보로.
+
+        if isinstance(data, dict):
+            return data
+        시도.append(f"{model}=객체가 아님")
+
+    raise RuntimeError("사용 가능한 Gemini 모델이 없습니다 (" + ", ".join(시도) + ")")
+
+
 def _call_openai(prompt: str, api_key: str) -> dict:
     """OpenAI 를 불러 JSON 을 받아 온다.
 
@@ -171,7 +219,7 @@ def _call_openai(prompt: str, api_key: str) -> dict:
 
     client = OpenAI(api_key=api_key)
     시도 = []
-    for model in MODELS:
+    for model in OPENAI_MODELS:
         try:
             response = client.chat.completions.create(
                 model=model,
@@ -189,7 +237,7 @@ def _call_openai(prompt: str, api_key: str) -> dict:
             return data
         시도.append(f"{model}=객체가 아님")
 
-    raise RuntimeError("사용 가능한 모델이 없습니다 (" + ", ".join(시도) + ")")
+    raise RuntimeError("사용 가능한 OpenAI 모델이 없습니다 (" + ", ".join(시도) + ")")
 
 
 def _normalize(data: dict) -> dict:
@@ -235,23 +283,50 @@ def _normalize(data: dict) -> dict:
     }
 
 
+def _pick_provider():
+    """쓸 수 있는 LLM 을 고른다.
+
+    OpenAI 키가 있으면 그것을, 없고 Gemini 키가 있으면 Gemini 를 쓴다.
+    명세는 'LLM API' 라고만 요구하므로 어느 쪽이든 된다.
+
+    Returns:
+        (공급자 이름, 키, 호출 함수). 키가 없으면 키 자리가 빈 문자열.
+    """
+    openai_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    if openai_key:
+        return "OpenAI", openai_key, _call_openai
+
+    gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
+    if gemini_key:
+        return "Gemini", gemini_key, _call_gemini
+
+    return "", "", _call_openai
+
+
 def generate_naming(brief: dict) -> dict:
     """docs/데이터-계약.md 의 [2] 규격대로 dict 를 돌려준다.
 
     키가 없거나 호출이 실패하면 EXAMPLE 을 돌려준다 — 파이프라인을 멈추지 않는다.
     """
     # .env 를 먼저 읽는다. 이걸 빼면 키를 .env 에만 넣은 사람은 계속 예시 값으로 돈다.
-    load_dotenv()
-    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    # 경로를 직접 준다 — 인자 없이 부르면 다른 폴더에서 실행했을 때 못 찾는다.
+    try:
+        load_dotenv(ENV_PATH)
+    except Exception:
+        pass  # .env 를 못 읽어도 환경변수로 넣었을 수 있다
+
+    provider, api_key, call = _pick_provider()
     if not api_key:
-        print("   ℹ️  [2] OPENAI_API_KEY 가 없어 예시 값으로 돌립니다")
+        print("   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다"
+              " (.env 에 OPENAI_API_KEY 또는 GEMINI_API_KEY)")
         return EXAMPLE
 
     try:
-        result = _normalize(_call_openai(build_prompt(brief), api_key))
+        result = _normalize(call(build_prompt(brief), api_key))
     except Exception as exc:
-        print(f"   ⚠️  [2] LLM 호출 실패({exc}) — 예시 값으로 대신합니다")
+        print(f"   ⚠️  [2] {provider} 호출 실패({exc}) — 예시 값으로 대신합니다")
         return EXAMPLE
+    print(f"   🤖 [2] {provider} 로 생성했습니다")
 
     # 규격 미달이면 예시가 낫다. 이름 하나짜리 결과로 뒤 단계를 돌릴 수는 없다.
     if len(result["naming"]) < 3 or len(result["slogans"]) < 3:

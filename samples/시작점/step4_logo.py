@@ -5,7 +5,8 @@
 ## 동작
 
     OPENAI_API_KEY 가 있으면   →  OpenAI 이미지 생성 API (gpt-image-1 → dall-e-3)
-    없거나 실패하면            →  Pollinations (키 없이 쓸 수 있는 무료 API)
+    GEMINI_API_KEY 가 있으면   →  Gemini 이미지 생성 API
+    둘 다 없거나 실패하면      →  Pollinations (키 없이 쓸 수 있는 무료 API)
     그것도 실패하면            →  자리표시자 PNG (파이프라인은 중단하지 않는다)
 
 세 번째가 중요하다. 발표 당일 키가 막히거나 인터넷이 끊겨도 전체 실행이
@@ -37,6 +38,8 @@ if sys_path not in __import__("sys").path:
 
 from brand_result import logo_prompt
 
+ENV_PATH = Path(__file__).resolve().parent / ".env"
+
 try:
     from dotenv import load_dotenv
 except ImportError:  # python-dotenv 를 안 깔았어도 돌아가야 한다
@@ -49,12 +52,20 @@ PLACEHOLDER = base64.b64decode(
 )
 
 OPENAI_IMAGE_URL = "https://api.openai.com/v1/images/generations"
+GEMINI_IMAGE_URL = (
+    "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
+)
+GEMINI_IMAGE_MODELS = ("gemini-2.5-flash-image", "gemini-3.1-flash-image",
+                       "gemini-3-pro-image")
 POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}"
 
 # 계정마다 열려 있는 모델이 다르다. 앞에서부터 시도해 먼저 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-image-1", "dall-e-3")
 
 LOGO_COUNT = 2  # 명세는 2~3장을 요구한다
+
+# 파이썬 기본 User-Agent 는 Pollinations 앞단 방화벽이 403 으로 막는다.
+BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 TIMEOUT = 90
 
 
@@ -79,38 +90,104 @@ def _openai_image(prompt: str, api_key: str) -> bytes | None:
                 payload = json.loads(response.read().decode("utf-8"))
             item = (payload.get("data") or [{}])[0]
             if item.get("b64_json"):
-                return base64.b64decode(item["b64_json"])
+                return _to_png(base64.b64decode(item["b64_json"]))
             if item.get("url"):
                 with urllib.request.urlopen(item["url"], timeout=TIMEOUT) as image:
-                    return image.read()
+                    return _to_png(image.read())
         except Exception:
             continue  # 이 모델은 못 쓴다. 다음 후보로.
     return None
 
 
-def _pollinations_image(prompt: str) -> bytes | None:
-    """키 없이 쓸 수 있는 무료 이미지 API. 마지막 보루다."""
-    url = POLLINATIONS_URL.format(prompt=urllib.parse.quote(prompt))
+def _gemini_image(prompt: str, api_key: str) -> bytes | None:
+    """Gemini 이미지 생성 API 를 부른다. 못 쓰면 None.
+
+    응답을 읽는 데까지 try 안에 둔다. 안전 필터에 걸려 이미지가 안 실려 와도
+    다음 모델로 넘어가야 하기 때문이다.
+    """
+    body = json.dumps({"contents": [{"parts": [{"text": prompt}]}]}).encode("utf-8")
+    for model in GEMINI_IMAGE_MODELS:
+        request = urllib.request.Request(
+            GEMINI_IMAGE_URL.format(model=model),
+            data=body,
+            headers={"Content-Type": "application/json", "x-goog-api-key": api_key},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            parts = (payload["candidates"][0].get("content") or {}).get("parts") or []
+            for part in parts:
+                inline = part.get("inlineData") or part.get("inline_data")
+                if inline and inline.get("data"):
+                    return _to_png(base64.b64decode(inline["data"]))
+        except Exception:
+            continue  # 이 모델은 못 쓴다. 다음 후보로.
+    return None
+
+
+def _to_png(data: bytes) -> bytes | None:
+    """받은 이미지를 PNG 로 만든다. 명세가 PNG 를 요구한다.
+
+    Pollinations 는 JPEG 로 돌려준다. Pillow 가 있으면 변환하고, 없으면 포기한다 —
+    JPEG 를 `.png` 이름으로 저장하면 파일이 깨진 것과 같다.
+    """
+    if data[:8] == b"\x89PNG\r\n\x1a\n":
+        return data
+    if data[:2] != b"\xff\xd8":
+        return None  # 이미지가 아니다. 오류 페이지를 받은 것이다.
+
     try:
-        with urllib.request.urlopen(url + "?width=1024&height=1024&nologo=true",
-                                    timeout=TIMEOUT) as response:
+        import io
+
+        from PIL import Image
+    except ImportError:
+        return None
+
+    try:
+        buffer = io.BytesIO()
+        Image.open(io.BytesIO(data)).convert("RGB").save(buffer, format="PNG")
+        return buffer.getvalue()
+    except Exception:
+        return None
+
+
+def _pollinations_image(prompt: str) -> bytes | None:
+    """키 없이 쓸 수 있는 무료 이미지 API. 마지막 보루다.
+
+    User-Agent 를 반드시 보낸다. 파이썬 기본 UA 로 부르면 앞단 방화벽이
+    HTTP 403 으로 막는다 (봇으로 본다).
+    """
+    url = (POLLINATIONS_URL.format(prompt=urllib.parse.quote(prompt))
+           + "?width=1024&height=1024&nologo=true")
+    request = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA})
+    try:
+        with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
             data = response.read()
     except Exception:
         return None
-    # PNG/JPEG 헤더가 아니면 오류 페이지를 받은 것이다. 그림인 척 저장하면 안 된다.
-    return data if data[:4] == b"\x89PNG" or data[:2] == b"\xff\xd8" else None
+    return _to_png(data)
 
 
 def generate_logos(brief: dict, naming: dict | None = None,
                    palette: dict | None = None) -> list:
     """docs/데이터-계약.md 의 [4] 규격대로 list 를 돌려준다."""
-    load_dotenv()
-    api_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    # 경로를 직접 준다 — 인자 없이 부르면 다른 폴더에서 실행했을 때 못 찾는다.
+    try:
+        load_dotenv(ENV_PATH)
+    except Exception:
+        pass
+
+    openai_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
 
     logos = []
     for prompt in logo_prompt.make_prompts(brief or {}, naming, palette, LOGO_COUNT):
-        image = _openai_image(prompt, api_key) if api_key else None
-        source = "openai"
+        image, source = None, ""
+        if openai_key:
+            image, source = _openai_image(prompt, openai_key), "openai"
+        if image is None and gemini_key:
+            image, source = _gemini_image(prompt, gemini_key), "gemini"
         if image is None:
             image = _pollinations_image(prompt)
             source = "pollinations"

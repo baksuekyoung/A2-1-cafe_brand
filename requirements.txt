@@ -1,2 +1,10 @@
 openai
 python-dotenv
+
+# 선택 — 없어도 돌아갑니다.
+#   matplotlib : 컬러 팔레트 PNG 에 색 이름을 함께 넣습니다.
+#                없으면 표준 라이브러리로 HEX 만 넣어 그립니다.
+#   pillow     : 이미지 API 가 JPEG 로 돌려줄 때 PNG 로 바꿉니다.
+#                없으면 그 시안은 건너뜁니다. (matplotlib 을 깔면 함께 깔립니다)
+matplotlib
+pillow

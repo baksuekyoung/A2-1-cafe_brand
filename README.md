@@ -36,7 +36,10 @@ pip install -r requirements.txt
 
 ```
 OPENAI_API_KEY=본인의_API_키
+GEMINI_API_KEY=본인의_API_키
 ```
+
+**둘 중 하나만 있으면 됩니다.** OpenAI 키가 있으면 그것을, 없으면 Gemini 를 씁니다.
 
 ```bash
 python test_api.py
@@ -44,6 +47,7 @@ python test_api.py
 
 API 키·인터넷·호출 권한이 정상인지 확인합니다.
 **키가 없어도 예시 값으로 대체되며 파이프라인은 중단되지 않습니다.**
+로고는 키가 없어도 Pollinations(무료)로 만들어 봅니다.
 
 ```
 🎨 브랜드 아이덴티티 — 결과 통합
