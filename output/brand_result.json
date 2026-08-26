@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T12:12:49",
+  "generated_at": "2026-08-26T15:55:33",
   "brief": {
     "industry": "카페",
     "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",
@@ -19,84 +19,96 @@
   "naming": {
     "naming": [
       {
-        "name": "소담",
-        "english": "Sodam",
-        "reading": "SOH-dahm",
-        "meaning": "‘소담’은 작은 이야기를 담고 있다는 의미로, 일상 속에서의 소소한 여유를 강조합니다.",
+        "name": "누크",
+        "english": "NOOK",
+        "reading": "NOOK",
+        "meaning": "따뜻하고 아늑한 나만의 구석 자리를 뜻하는 영단어에서 가져온 이름입니다.",
         "type": "3"
       },
       {
-        "name": "테라스",
-        "english": "Terrace",
-        "reading": "TEH-ruhss",
-        "meaning": "‘테라스’는 바깥 풍경을 바라보며 여유를 즐길 수 있는 공간을 의미합니다.",
-        "type": "5"
+        "name": "로웰",
+        "english": "LOWELL",
+        "reading": "LOW-ell",
+        "meaning": "조용한 시인을 연상시키는 이름으로, 평온하고 사랑받는 내면의 안식처를 의미합니다.",
+        "type": "1"
       },
       {
-        "name": "아늑",
-        "english": "Aneuk",
-        "reading": "AH-nuk",
-        "meaning": "‘아늑’은 아늑하고 편안한 공간을 지향하며 따뜻함을 느낄 수 있음을 나타냅니다.",
+        "name": "온즈",
+        "english": "OUNCE",
+        "reading": "OWN-ss",
+        "meaning": "커피 한 잔을 완성하는 가장 정밀한 단위에서 착안하여 맛에 대한 진심을 담았습니다.",
+        "type": "2"
+      },
+      {
+        "name": "멜로우",
+        "english": "MELLOW",
+        "reading": "MEL-low",
+        "meaning": "무르익은 과일이나 부드러운 소리처럼 편안하고 감성적인 상태를 강조한 명칭입니다.",
         "type": "4"
       },
       {
-        "name": "온도",
-        "english": "Ondo",
-        "reading": "ON-doh",
-        "meaning": "‘온도’는 따뜻한 감성을 뜻하며, 정서적으로 따뜻한 공간을 제공하겠다는 의지를 담고 있습니다.",
-        "type": "1"
+        "name": "에이커",
+        "english": "ACRE",
+        "reading": "AY-ker",
+        "meaning": "역사적으로 평화로운 휴식이 보장된 땅의 단위를 뜻하며 쉼터가 되는 공간을 상징합니다.",
+        "type": "5"
       }
     ],
     "slogans": [
-      "이곳에서 일상의 쉼을 찾다",
-      "따뜻한 감성과 여유의 공간",
-      "소담, 당신의 이야기를 담다"
+      "모니터 너머 지친 당신에게 필요한 한 줄기 빛",
+      "잔잔한 음악과 온기가 머무는 아늑한 구석",
+      "나를 위한 가장 완벽한 쉼표, 누크에서 찾으세요"
     ],
-    "story": "‘소담’은 바쁜 일상 속에서 잃어가는 여유를 찾길 원하는 20~30대 직장인들을 위해 탄생하였습니다. 현대인의 삶에서 소통과 휴식의 중요성을 깊이 깨닫고, 따뜻한 감성과 포근함을 담아낸 공간을 조성하고자 하였습니다. 우리는 이곳이 사람들 간의 소중한 이야기와 교감이 이루어지는 공간으로 자리매김하길 바랍니다. 소소한 일상에서 느끼는 작은 행복과 위로, 이곳에서 나누는 특별한 순간들이 쌓여가기를 원하는 꿈이 있습니다. 앞으로도 ‘소담’은 향긋한 커피와 함께 사람들이 마음을 나누고 기억을 쌓는 소통의 장이 되며, 더 풍부한 문화와 교류가 있는 공간으로 성장해 나가겠습니다.",
+    "story": "정신없이 흘러가는 도심 속에서 직장인들은 커피 한 잔의 여유조차 업무의 연장선으로 느끼곤 합니다. 우리는 차가운 모니터 불빛에서 벗어나 잠시 숨을 고를 수 있는 '진짜 쉼표'를 제안하기 위해 탄생했습니다. 단순한 카페를 넘어, 공간의 조도와 음악의 선율까지 따뜻하게 설계하여 방문객의 내면을 채우는 것을 철학으로 삼습니다. 과시적인 유행을 따르기보다는 언제 찾아와도 변함없이 아늑한 그늘이 되어주는 브랜드가 되고자 합니다. 바쁜 일상 속에서 가장 편안한 나만의 구석 자리가 되어, 내일로 나아갈 에너지를 얻는 감성적인 안식처로 자리 잡는 것이 우리의 비전입니다.",
     "competitors": [
       {
-        "competitor": "스타벅스",
-        "position": "프리미엄 커피 시장의 선두주자",
-        "differentiation": "‘소담’은 일상의 감성이 담긴 휴식 공간으로 차별화하여 고객의 정서적 안식을 제공합니다."
+        "competitor": "블루보틀",
+        "position": "장인 정신과 미니멀리즘을 강조한 스페셜티 커피의 대명사입니다.",
+        "differentiation": "차갑고 절제된 화이트 톤 대신, 목재와 조명을 활용한 시각적 온기로 지친 직장인을 포용합니다."
       },
       {
-        "competitor": "블루보틀",
-        "position": "스페셜티 커피를 중시하는 카페",
-        "differentiation": "‘소담’은 커피와 함께 소소한 대화를 자유롭게 나눌 수 있는 따뜻한 공간을 제안합니다."
+        "competitor": "스타벅스",
+        "position": "어디서나 균일한 경험을 제공하는 전 세계적인 제3의 공간입니다.",
+        "differentiation": "대중적인 분주함과 소음에서 탈피하여, 2030 타깃이 오롯이 개인적인 감상에 젖을 수 있는 아지트를 지향합니다."
       }
     ]
   },
   "palette": {
     "main": {
-      "hex": "#7D5B3D",
-      "name": "부드러운 브라운",
-      "reason": "브랜드의 따뜻함과 포근함을 상징하며, 일상의 여유를 느끼게 해줍니다."
+      "hex": "#4A2F24",
+      "name": "모카 브라운",
+      "reason": "따뜻하고 아늑한 카페의 중심을 표현하는 깊은 브라운으로 흰 배경에서도 로고가 또렷하게 보입니다."
     },
     "subs": [
       {
-        "hex": "#E4D3C9",
-        "name": "크림 아이보리",
-        "reason": "밝고 부드러운 배경색으로, 편안하고 여유로운 분위기를 전달합니다."
+        "hex": "#F6EDE3",
+        "name": "크림 베이지",
+        "reason": "밝고 은은한 배경색으로 여백을 살려 텍스트와 공간의 편안함을 보장합니다."
       },
       {
-        "hex": "#B18A68",
-        "name": "카푸치노 베이지",
-        "reason": "메인 컬러와 조화를 이루며 포인트로 사용해 감성적인 터치를 더합니다."
+        "hex": "#C77A3B",
+        "name": "호박빛",
+        "reason": "따뜻한 포인트 컬러로 메뉴와 소품에 감성적 활기를 더해줍니다."
+      },
+      {
+        "hex": "#8AA07B",
+        "name": "세이지",
+        "reason": "부드러운 녹색 포인트로 식물과 휴식의 이미지를 더해 일상 속 쉼을 암시합니다."
       }
     ]
   },
   "logos": [
     {
       "prompt": "minimalist geometric icon, single abstract symbol suggesting leisure, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space",
-      "source": "openai"
+      "source": "codyssey"
     },
     {
       "prompt": "simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid warm neutral tones on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space",
-      "source": "openai"
+      "source": "codyssey"
     },
     {
       "prompt": "clean line-art emblem, a single continuous outline suggesting pause in daily life, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins",
-      "source": "openai"
+      "source": "codyssey"
     }
   ],
   "steps": [

@@ -41,7 +41,7 @@ Draw an emblem made of one continuous outline that suggests a pause in everyday 
 
 ### 시안 1
 
-생성: OpenAI 이미지 API
+생성: codyssey
 
 ```text
 minimalist geometric icon, single abstract symbol suggesting leisure, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space
@@ -49,7 +49,7 @@ minimalist geometric icon, single abstract symbol suggesting leisure, solid warm
 
 ### 시안 2
 
-생성: OpenAI 이미지 API
+생성: codyssey
 
 ```text
 simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid warm neutral tones on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space
@@ -57,7 +57,7 @@ simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid
 
 ### 시안 3
 
-생성: OpenAI 이미지 API
+생성: codyssey
 
 ```text
 clean line-art emblem, a single continuous outline suggesting pause in daily life, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins

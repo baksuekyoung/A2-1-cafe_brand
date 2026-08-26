@@ -146,16 +146,24 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | <img src="output/logo_01.png" width="220"> | <img src="output/logo_02.png" width="220"> | <img src="output/logo_03.png" width="220"> |
 | 면으로 채운 기하 아이콘 | 굵은 획 픽토그램 | 이어진 선 엠블럼 |
 
+시안마다 다른 프롬프트 템플릿을 씁니다. 같은 그림이 여러 장 나오면 시안이 아니기 때문입니다.
+셋 다 팔레트 메인 컬러 계열이고, 글자가 들어가지 않습니다.
+
 **네이밍** — 후보마다 다른 유형으로, 한글 이름과 영문 표기를 함께
 
 | 이름 | 영문 표기 | 유형 |
 | --- | --- | --- |
-| 소담 | Sodam | 은유·조어 |
-| 테라스 | Terrace | 지명·역사 |
-| 아늑 | Aneuk | 속성 강조 |
-| 온도 | Ondo | 문학·인물 |
+| 누크 | NOOK | 은유·조어 |
+| 로웰 | LOWELL | 문학·인물 |
+| 온즈 | OUNCE | 제품 직관 |
+| 멜로우 | MELLOW | 속성 강조 |
+| 에이커 | ACRE | 지명·역사 |
 
+**슬로건 3개 · 브랜드 스토리 314자 · 경쟁사 분석 2건**도 함께 나옵니다.
 텍스트 결과 전체는 [`output/brand_result.md`](output/brand_result.md)에 있습니다.
+
+> 위 결과는 **코디세이 공개 API**로 생성했습니다. 예시 값으로 대체된 자리는 없습니다
+> ([`output/run_report.md`](output/run_report.md) 참고).
 
 ---
 
@@ -196,6 +204,7 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | 키가 거부돼도(401) 조용히 넘어감 | 그 사실을 출력 |
 | 예시 값 대체가 제출물에 안 남음 | `run_report.md`에 기록 |
 | 테스트가 실제 API를 호출 (17.6초) | `conftest.py`가 키 제거 + 네트워크 차단 (2.0초) |
+| 이미지 생성에 개인 결제분이 들어감 | **코디세이 공개 API**를 공급자 맨 앞에 붙임 (기관 키로 정산) |
 | `brief.py`가 검증을 건너뜀 — 이름만 `main`과 같고 실제로는 샘플 파일을 그냥 읽음 | `main.load_brief`를 부르게 통일. 필수 필드 없는 브리프가 통과하던 문제 해결 |
 
 ---
