@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T15:55:33",
+  "generated_at": "2026-08-26T22:36:33",
   "brief": {
     "industry": "카페",
     "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",
@@ -19,87 +19,87 @@
   "naming": {
     "naming": [
       {
-        "name": "누크",
-        "english": "NOOK",
-        "reading": "NOOK",
-        "meaning": "따뜻하고 아늑한 나만의 구석 자리를 뜻하는 영단어에서 가져온 이름입니다.",
+        "name": "페이즈",
+        "english": "Paze",
+        "reading": "PA-zeuh",
+        "meaning": "Pace(속도)와 Pause(멈춤)를 결합하여 일상의 빠른 속도를 늦추고 잠시 멈춰 서는 순간을 의미합니다.",
         "type": "3"
       },
       {
-        "name": "로웰",
-        "english": "LOWELL",
-        "reading": "LOW-ell",
-        "meaning": "조용한 시인을 연상시키는 이름으로, 평온하고 사랑받는 내면의 안식처를 의미합니다.",
-        "type": "1"
-      },
-      {
-        "name": "온즈",
-        "english": "OUNCE",
-        "reading": "OWN-ss",
-        "meaning": "커피 한 잔을 완성하는 가장 정밀한 단위에서 착안하여 맛에 대한 진심을 담았습니다.",
+        "name": "온김",
+        "english": "Ongim",
+        "reading": "OWN-gim",
+        "meaning": "따뜻할 온(溫)과 차에서 피어오르는 '김'을 결합하여 음료가 주는 시각적 온기를 형상화했습니다.",
         "type": "2"
       },
       {
-        "name": "멜로우",
-        "english": "MELLOW",
-        "reading": "MEL-low",
-        "meaning": "무르익은 과일이나 부드러운 소리처럼 편안하고 감성적인 상태를 강조한 명칭입니다.",
+        "name": "소로우",
+        "english": "Thoreau",
+        "reading": "thuh-ROW",
+        "meaning": "고전 월든의 저자 헨리 데이비드 소로우의 이름에서 따와 숲속의 고요한 사색과 자발적 고립을 지향합니다.",
+        "type": "1"
+      },
+      {
+        "name": "모먼",
+        "english": "Momen",
+        "reading": "MO-muhn",
+        "meaning": "Moment(순간)의 끝음을 생략하여 과거와 미래가 아닌 오직 현재의 평온에만 집중하는 찰나를 강조했습니다.",
         "type": "4"
       },
       {
-        "name": "에이커",
-        "english": "ACRE",
-        "reading": "AY-ker",
-        "meaning": "역사적으로 평화로운 휴식이 보장된 땅의 단위를 뜻하며 쉼터가 되는 공간을 상징합니다.",
+        "name": "브리엔츠",
+        "english": "Brienz",
+        "reading": "BREE-enz",
+        "meaning": "알프스 기슭의 평화로운 호수 마을 지명에서 가져와 이국적이고 압도적인 정적을 공간에 담았습니다.",
         "type": "5"
       }
     ],
     "slogans": [
-      "모니터 너머 지친 당신에게 필요한 한 줄기 빛",
-      "잔잔한 음악과 온기가 머무는 아늑한 구석",
-      "나를 위한 가장 완벽한 쉼표, 누크에서 찾으세요"
+      "숨 가쁜 업무 사이, 당신만을 위한 빈칸이 필요할 때",
+      "손끝에 닿는 온기와 마음을 어루만지는 고요한 숨",
+      "오늘의 마침표가 아닌, 페이즈로 이어가는 쉼표"
     ],
-    "story": "정신없이 흘러가는 도심 속에서 직장인들은 커피 한 잔의 여유조차 업무의 연장선으로 느끼곤 합니다. 우리는 차가운 모니터 불빛에서 벗어나 잠시 숨을 고를 수 있는 '진짜 쉼표'를 제안하기 위해 탄생했습니다. 단순한 카페를 넘어, 공간의 조도와 음악의 선율까지 따뜻하게 설계하여 방문객의 내면을 채우는 것을 철학으로 삼습니다. 과시적인 유행을 따르기보다는 언제 찾아와도 변함없이 아늑한 그늘이 되어주는 브랜드가 되고자 합니다. 바쁜 일상 속에서 가장 편안한 나만의 구석 자리가 되어, 내일로 나아갈 에너지를 얻는 감성적인 안식처로 자리 잡는 것이 우리의 비전입니다.",
+    "story": "반복되는 업무와 소음 속에서 2030 직장인들은 단순한 물리적 휴식보다 정서적 환기를 갈망합니다. 우리는 이들이 잠시나마 사회적 가면을 벗고 오로지 자신에게만 집중할 수 있는 '도심 속 은신처'를 제공하고자 이 브랜드를 시작했습니다. 과시적인 인테리어나 화려한 메뉴 대신, 비어있는 공간이 주는 충만함과 재료 본연의 따뜻함을 유지하는 것을 브랜드의 핵심 철학으로 삼습니다. 단순히 음료를 마시는 공간을 넘어, 일상의 속도를 스스로 조절하고 다시 나아갈 에너지를 얻는 정서적 이정표가 되는 것이 우리의 비전입니다.",
     "competitors": [
       {
         "competitor": "블루보틀",
-        "position": "장인 정신과 미니멀리즘을 강조한 스페셜티 커피의 대명사입니다.",
-        "differentiation": "차갑고 절제된 화이트 톤 대신, 목재와 조명을 활용한 시각적 온기로 지친 직장인을 포용합니다."
+        "position": "미니멀리즘과 스페셜티 커피의 전문성을 강조하며 브랜드 마니아층을 확보했습니다.",
+        "differentiation": "전문가적인 시선보다는 사용자의 정서적 휴식에 집중하여 보다 포근하고 아늑한 공간 경험을 제공합니다."
       },
       {
         "competitor": "스타벅스",
-        "position": "어디서나 균일한 경험을 제공하는 전 세계적인 제3의 공간입니다.",
-        "differentiation": "대중적인 분주함과 소음에서 탈피하여, 2030 타깃이 오롯이 개인적인 감상에 젖을 수 있는 아지트를 지향합니다."
+        "position": "제3의 공간으로서 표준화된 서비스와 대중적인 접근성을 바탕으로 시장을 점유하고 있습니다.",
+        "differentiation": "표준화된 활기보다는 각 매장만의 고유한 감성과 느린 호흡을 강조하여 대화보다는 사색에 적합한 분위기를 조성합니다."
       }
     ]
   },
   "palette": {
     "main": {
-      "hex": "#4A2F24",
-      "name": "모카 브라운",
-      "reason": "따뜻하고 아늑한 카페의 중심을 표현하는 깊은 브라운으로 흰 배경에서도 로고가 또렷하게 보입니다."
+      "hex": "#5B3E2F",
+      "name": "토스트 브라운",
+      "reason": "따뜻한 커피와 원목을 떠올리게 하는 깊은 브라운으로 흰 배경에서도 선명하게 브랜드의 온기와 안정감을 전달합니다."
     },
     "subs": [
       {
-        "hex": "#F6EDE3",
+        "hex": "#F6EFE6",
         "name": "크림 베이지",
-        "reason": "밝고 은은한 배경색으로 여백을 살려 텍스트와 공간의 편안함을 보장합니다."
+        "reason": "넉넉한 여백과 가독성을 살려 '멈춤'의 공간을 만드는 밝은 배경 색입니다."
       },
       {
-        "hex": "#C77A3B",
-        "name": "호박빛",
-        "reason": "따뜻한 포인트 컬러로 메뉴와 소품에 감성적 활기를 더해줍니다."
+        "hex": "#8AA08D",
+        "name": "세이지 그린",
+        "reason": "도심 속 은신처의 차분함과 정서적 환기를 상징하는 부드러운 그린 포인트입니다."
       },
       {
-        "hex": "#8AA07B",
-        "name": "세이지",
-        "reason": "부드러운 녹색 포인트로 식물과 휴식의 이미지를 더해 일상 속 쉼을 암시합니다."
+        "hex": "#D07A5A",
+        "name": "테라코타",
+        "reason": "재료 본연의 따뜻함과 감성적 포인트를 더해 전체 톤에 활기를 주는 컬러입니다."
       }
     ]
   },
   "logos": [
     {
-      "prompt": "minimalist geometric icon, single abstract symbol suggesting leisure, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space",
+      "prompt": "minimalist geometric icon, single abstract symbol suggesting relaxation, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space",
       "source": "codyssey"
     },
     {

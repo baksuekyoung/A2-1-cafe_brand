@@ -96,6 +96,8 @@ def check_naming(naming: object) -> list[str]:
                 problems.append(
                     f"[2] naming.naming[{index}]: english 에 영문이 아닌 글자가 있습니다"
                 )
+
+            problems += _check_reading(item, english, f"[2] naming.naming[{index}]")
         problems += _check_distinctiveness(names)
     elif "naming" in naming:
         problems.append("[2] naming: naming 이 list 가 아닙니다")
@@ -147,6 +149,32 @@ def _check_color(color: object, where: str) -> list[str]:
             f"{where}: hex 가 '{hex_value}' 입니다 — '#RRGGBB' 대문자 6자리로 주세요"
         )
 
+    return problems
+
+
+def _check_reading(item: dict, english: str, where: str) -> list[str]:
+    """읽는 법(`reading`)을 검사한다.
+
+    보너스로 택한 '다국어 네이밍 지원' 의 일부다. `reading` 은 한국어 사용자가
+    영문 표기를 어떻게 소리 내는지 알려 주는 자리다.
+
+    `NOOK / NOOK` 처럼 영문 표기를 그대로 베껴 오는 일이 있었다. 그러면
+    아무것도 알려 주지 못한다. 버리지는 않고 `run_report.md` 에 적는다.
+    """
+    problems: list[str] = []
+    reading = str(item.get("reading") or "").strip()
+
+    if not reading:
+        return [f"{where}: reading (읽는 법) 이 비어 있습니다"]
+
+    if not reading.replace("-", "").replace(" ", "").isascii():
+        problems.append(f"{where}: reading 에 영문이 아닌 글자가 있습니다")
+
+    if english and reading.upper() == english.upper():
+        problems.append(
+            f"{where}: reading 이 english 와 똑같습니다 ('{reading}')"
+            " — 음절을 나눠 읽는 법을 보여 주세요 (예: OWN-gee)"
+        )
     return problems
 
 

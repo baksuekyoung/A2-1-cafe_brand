@@ -103,9 +103,8 @@ def test_영문_표기가_비면_규격_위반으로_잡는다():
     """보너스로 택한 항목이므로 빠지면 기록에 남아야 한다."""
     naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(3)],
               "slogans": ["가", "나", "다"], "story": "이" * 300}
-    문제 = validate.check_naming(naming)
-    assert len(문제) == 3
-    assert all("english" in p for p in 문제)
+    영문문제 = [p for p in validate.check_naming(naming) if "english" in p]
+    assert len(영문문제) == 3      # 후보 셋 모두
 
 
 def test_영문_자리에_한글이_오면_잡는다():
@@ -337,7 +336,7 @@ def test_키가_없으면_예시로_돈다(monkeypatch):
 
 def test_이름이_여섯_개면_규격_위반():
     """명세는 3~5개를 요구한다."""
-    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "reading": f"NAY-m{i}", "meaning": "뜻"}
                          for i in range(6)],
               "slogans": ["가", "나", "다"], "story": "이" * 300}
     assert any("3~5개" in p for p in validate.check_naming(naming))
@@ -345,14 +344,14 @@ def test_이름이_여섯_개면_규격_위반():
 
 def test_경쟁사_분석이_없어도_규격을_통과한다():
     """경쟁사 분석은 택하지 않은 보너스라 없어도 된다."""
-    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "reading": f"NAY-m{i}", "meaning": "뜻"}
                          for i in range(3)],
               "slogans": ["가", "나", "다"], "story": "이" * 300}
     assert validate.check_naming(naming) == []
 
 
 def test_경쟁사_모양이_틀리면_잡는다():
-    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
+    naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "reading": f"NAY-m{i}", "meaning": "뜻"}
                          for i in range(3)],
               "slogans": ["가", "나", "다"], "story": "이" * 300,
               "competitors": "블루보틀"}
@@ -500,3 +499,53 @@ def test_유형_번호를_받아_둔다(monkeypatch):
 
     후보 = naming.generate_naming(BRIEF)["naming"]
     assert [c["type"] for c in 후보] == ["1", "2", "3"]
+
+
+# --- 보너스: 읽는 법(reading) 품질 ------------------------------------------
+#
+# 실측으로 '누크 / NOOK / NOOK' 이 나왔다. 읽는 법이 영문 표기와 똑같으면
+# 한국어 사용자에게 아무것도 알려 주지 못한다.
+
+def _후보하나(**덮어쓰기):
+    후보 = {"name": "온기", "english": "Ongi", "reading": "OWN-gee", "meaning": "뜻"}
+    후보.update(덮어쓰기)
+    return {"naming": [후보, dict(후보, name="쉼표", english="Comma", reading="COM-ma"),
+                       dict(후보, name="모닥", english="Modak", reading="MO-dak")],
+            "slogans": ["가", "나", "다"], "story": "이" * 300}
+
+
+def test_읽는_법이_영문_표기와_같으면_잡는다():
+    문제 = validate.check_naming(_후보하나(english="Nook", reading="NOOK"))
+    assert any("reading 이 english 와 똑같습니다" in p for p in 문제)
+
+
+def test_대소문자만_다른_것도_같은_것으로_본다():
+    """'nook' 과 'NOOK' 은 읽는 법을 알려 주지 않는 건 마찬가지다."""
+    문제 = validate.check_naming(_후보하나(english="Nook", reading="nook"))
+    assert any("reading" in p for p in 문제)
+
+
+def test_읽는_법이_비면_잡는다():
+    문제 = validate.check_naming(_후보하나(reading=""))
+    assert any("reading (읽는 법) 이 비어 있습니다" in p for p in 문제)
+
+
+def test_읽는_법에_한글이_섞이면_잡는다():
+    문제 = validate.check_naming(_후보하나(reading="온-기"))
+    assert any("reading 에 영문이 아닌" in p for p in 문제)
+
+
+def test_하이픈으로_나눈_읽는_법은_통과한다():
+    문제 = validate.check_naming(_후보하나(english="Ongi", reading="OWN-gee"))
+    assert not any("reading" in p for p in 문제)
+
+
+def test_예시_값의_읽는_법은_규격을_지킨다():
+    """호출이 실패해 예시로 떨어져도 보너스 품질이 무너지면 안 된다."""
+    assert not any("reading" in p for p in validate.check_naming(naming.EXAMPLE))
+
+
+def test_프롬프트가_읽는_법_베끼기를_막는다():
+    prompt = naming.build_prompt(BRIEF)
+    assert "reading 은 english 를 그대로 베끼면 안 됩니다" in prompt
+    assert "음절을 하이픈으로 나눠" in prompt

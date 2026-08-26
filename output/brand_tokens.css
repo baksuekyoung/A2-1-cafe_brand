@@ -1,17 +1,17 @@
 :root {
-  --brand-main: #4A2F24;
-  --brand-sub-1: #F6EDE3;
-  --brand-sub-2: #C77A3B;
-  --brand-sub-3: #8AA07B;
+  --brand-main: #5B3E2F;
+  --brand-sub-1: #F6EFE6;
+  --brand-sub-2: #8AA08D;
+  --brand-sub-3: #D07A5A;
 }
 
 /* Tailwind — tailwind.config.js 의 theme.extend.colors 에 붙여 넣기
 {
   "brand": {
-    "DEFAULT": "#4A2F24",
-    "sub1": "#F6EDE3",
-    "sub2": "#C77A3B",
-    "sub3": "#8AA07B"
+    "DEFAULT": "#5B3E2F",
+    "sub1": "#F6EFE6",
+    "sub2": "#8AA08D",
+    "sub3": "#D07A5A"
   }
 }
 */
