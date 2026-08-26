@@ -55,9 +55,14 @@ def test_보너스_규칙이_프롬프트에_실린다():
 def test_명세가_요구하는_개수가_프롬프트에_숫자로_적힌다():
     """'여러 개' 라고 쓰면 모델마다 다르게 읽는다."""
     prompt = naming.build_prompt(BRIEF)
-    assert "3개 이상 5개 이하" in prompt
+    assert "4개 이상 5개 이하" in prompt    # 명세는 3~5개지만 3개는 고를 여지가 없다
     assert "정확히 3개" in prompt           # 슬로건
     assert "300자 내외" in prompt           # 스토리
+
+
+def test_예시_값도_후보를_넉넉히_준다():
+    """호출이 실패해 예시로 떨어져도 후보가 셋뿐이면 안 된다."""
+    assert 4 <= len(naming.EXAMPLE["naming"]) <= 5
 
 
 def test_스토리_규칙이_명세_문구를_담는다():
@@ -383,3 +388,45 @@ def test_보너스가_없으면_그_절을_아예_넣지_않는다():
 @pytest.mark.parametrize("깨진값", [None, "문자열", 123, {"competitors": "리스트아님"}])
 def test_이상한_값이_와도_문서_생성이_죽지_않는다(깨진값):
     report._competitor_block(깨진값 if not isinstance(깨진값, dict) else 깨진값.get("competitors"))
+
+
+def test_스토리가_아예_비어_오면_새로_써_달라고_청한다(monkeypatch):
+    """후보 개수를 늘린 뒤 story 가 빈 문자열로 오는 일을 실제로 만났다.
+
+    그때 "0자짜리를 늘려 쓰라" 고 청하면 늘릴 원문이 없어 말이 되지 않는다.
+    """
+    빈것 = dict(ANSWER, story="")
+    호출 = []
+
+    def 가짜호출(prompt, _key):
+        호출.append(prompt)
+        return 빈것 if len(호출) == 1 else {"story": "구" * 300}
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
+
+    result = naming.generate_naming(BRIEF)
+    다시청한것 = 호출[1]
+    assert "원래 스토리" not in 다시청한것        # 늘릴 원문이 없다
+    assert "0자로 너무 짧습니다" not in 다시청한것
+    assert "카페" in 다시청한것                  # 브리프로 새로 쓴다
+    assert "280자에서 320자" in 다시청한것
+    assert len(result["story"]) == 300
+
+
+def test_스토리가_있으면_그것을_늘려_달라고_청한다(monkeypatch):
+    짧은 = dict(ANSWER, story="이" * 150)
+    호출 = []
+
+    def 가짜호출(prompt, _key):
+        호출.append(prompt)
+        return 짧은 if len(호출) == 1 else {"story": "구" * 300}
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
+
+    naming.generate_naming(BRIEF)
+    assert "원래 스토리" in 호출[1]
+    assert "150자로 너무 짧습니다" in 호출[1]

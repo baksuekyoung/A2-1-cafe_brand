@@ -186,3 +186,51 @@ def test_프롬프트가_hex_형식을_못_박는다():
     rule = palette.PALETTE_RULE
     assert "#" in rule and "대문자" in rule
     assert "rgb(" in rule
+
+
+# --- 메인이 흰 배경에 묻히지 않는가 -----------------------------------------
+#
+# 로고는 흰 배경 위에 메인 컬러로 그린다. 실측 #C5B29A(2.06:1)로 그린
+# 시안이 거의 보이지 않았다.
+
+밝은메인 = {"main": {"hex": "#C5B29A", "name": "부드러운 베이지", "reason": "밝음"},
+            "subs": ANSWER["subs"]}
+
+
+def test_메인이_너무_밝으면_다시_청한다(가짜LLM):
+    기록 = 가짜LLM(lambda prompt: ANSWER if "너무 밝습니다" in prompt else 밝은메인)
+    result = palette.generate_palette(BRIEF, NAMING)
+
+    assert len(기록) == 2
+    assert result["main"]["hex"] == "#2F4858"
+    assert "흰 배경" in 기록[1]
+
+
+def test_다시_청한_것도_밝으면_원래_것을_쓴다(가짜LLM):
+    """색은 사람이 판단할 문제다. 버리지 않고 대비 경고만 남긴다."""
+    더밝은것 = {"main": {"hex": "#FAF8F5", "name": "아이보리", "reason": "더 밝음"},
+                "subs": ANSWER["subs"]}
+    가짜LLM(lambda prompt: 더밝은것 if "너무 밝습니다" in prompt else 밝은메인)
+    assert palette.generate_palette(BRIEF, NAMING)["main"]["hex"] == "#C5B29A"
+
+
+def test_메인이_충분히_진하면_다시_청하지_않는다(가짜LLM):
+    """멀쩡한 결과에 추가 호출을 하면 토큰 낭비다."""
+    기록 = 가짜LLM(ANSWER)
+    palette.generate_palette(BRIEF, NAMING)
+    assert len(기록) == 1
+
+
+def test_다시_청하다_실패해도_원래_것을_쓴다(가짜LLM):
+    def 응답(prompt):
+        if "너무 밝습니다" in prompt:
+            raise RuntimeError("쿼터 초과")
+        return 밝은메인
+
+    가짜LLM(응답)
+    assert palette.generate_palette(BRIEF, NAMING)["main"]["hex"] == "#C5B29A"
+
+
+def test_프롬프트가_흰_배경_대비를_못_박는다():
+    assert "흰 배경" in palette.PALETTE_RULE
+    assert palette.MIN_MAIN_CONTRAST >= 3.0

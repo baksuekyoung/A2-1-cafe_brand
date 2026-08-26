@@ -87,7 +87,8 @@ EXAMPLE = {
 # --- BI 분석 리포트에서 옮긴 규칙 -------------------------------------
 
 NAMING_RULE = (
-    "브랜드명 후보를 3개 이상 5개 이하로 만드세요.\n"
+    "브랜드명 후보를 **4개 이상 5개 이하**로 만드세요.\n"
+    "세 개만 내면 고를 여지가 없습니다. 네 개를 채우고, 더 낼 수 있으면 다섯 개까지 냅니다.\n"
     "국내 카페 브랜드는 아래 5가지 유형으로 나뉩니다. 후보마다 다른 유형을 쓰세요.\n"
     "  (1) 문학·인물 차용 — 스타벅스(소설 속 인물), 폴 바셋(실존 바리스타)\n"
     "  (2) 제품 직관형 — 커피빈(콩+찻잎). 무엇을 파는지 이름만으로 전달\n"
@@ -386,15 +387,7 @@ def _retry_story(short_story: str, brief: dict, api_key: str, call) -> str:
     """짧게 온 스토리를 다시 청한다. 끝내 못 늘리면 가장 긴 것을 돌려준다."""
     best = short_story
     for _ in range(STORY_RETRIES):
-        ask = (
-            f"아래 브랜드 스토리는 {len(best)}자로 너무 짧습니다.\n"
-            "내용과 어조는 유지한 채 **280자에서 320자 사이**로 늘려 다시 쓰세요.\n"
-            "탄생 배경, 철학, 비전 세 가지가 모두 담겨야 합니다.\n"
-            "쓴 뒤 공백까지 세어 보고 280자에 못 미치면 더 채우세요.\n\n"
-            f"업종: {brief.get('industry', '')} / 타깃: {brief.get('target', '')}\n\n"
-            f"원래 스토리:\n{best}\n\n"
-            '{"story": "다시 쓴 스토리"} 형식의 JSON 으로만 답하세요.'
-        )
+        ask = (_ask_from_scratch(brief) if not best else _ask_longer(best, brief))
         try:
             longer = str(call(ask, api_key).get("story") or "").strip()
         except Exception:
@@ -405,6 +398,41 @@ def _retry_story(short_story: str, brief: dict, api_key: str, call) -> str:
         if len(best) >= STORY_TARGET_CHARS:
             break
     return best
+
+
+def _ask_longer(story: str, brief: dict) -> str:
+    """있는 스토리를 늘려 달라고 청한다."""
+    return (
+        f"아래 브랜드 스토리는 {len(story)}자로 너무 짧습니다.\n"
+        "내용과 어조는 유지한 채 **280자에서 320자 사이**로 늘려 다시 쓰세요.\n"
+        "탄생 배경, 철학, 비전 세 가지가 모두 담겨야 합니다.\n"
+        "쓴 뒤 공백까지 세어 보고 280자에 못 미치면 더 채우세요.\n\n"
+        f"업종: {brief.get('industry', '')} / 타깃: {brief.get('target', '')}\n\n"
+        f"원래 스토리:\n{story}\n\n"
+        '{"story": "다시 쓴 스토리"} 형식의 JSON 으로만 답하세요.'
+    )
+
+
+def _ask_from_scratch(brief: dict) -> str:
+    """스토리가 아예 비어 왔을 때 새로 써 달라고 청한다.
+
+    후보 개수를 늘린 뒤 `story` 가 빈 문자열로 오는 일을 실제로 만났다.
+    그때 "0자짜리를 늘려 쓰라" 고 청하면 늘릴 원문이 없어 말이 되지 않는다.
+    """
+    keywords = ", ".join(str(k) for k in brief.get("keywords") or [])
+    lines = [
+        "아래 브랜드의 스토리를 **280자에서 320자 사이**로 쓰세요.",
+        "탄생 배경, 철학, 비전 세 가지가 모두 담겨야 합니다.",
+        "쓴 뒤 공백까지 세어 보고 280자에 못 미치면 더 채우세요.",
+        "",
+        f"업종: {brief.get('industry', '')}",
+        f"타깃: {brief.get('target', '')}",
+        f"키워드: {keywords}",
+    ]
+    if brief.get("tone"):
+        lines.append(f"톤앤매너: {brief['tone']}")
+    lines += ["", '{"story": "브랜드 스토리"} 형식의 JSON 으로만 답하세요.']
+    return "\n".join(lines)
 
 
 if __name__ == "__main__":

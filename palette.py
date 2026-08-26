@@ -32,6 +32,10 @@ HEX_PATTERN = re.compile(r"^#[0-9A-F]{6}$")
 MIN_SUBS = 2
 MAX_SUBS = 3
 
+# 로고는 흰 배경 위에 메인 컬러로 그린다. 메인이 흰색에 가까우면 그림이 흐려진다.
+# 실측 #C5B29A(대비 2.06:1)로 그린 로고가 거의 안 보였다.
+MIN_MAIN_CONTRAST = 3.0
+
 # 계약이 요구하는 것 — 메인 1개, 서브 2개 이상. hex 는 '#RRGGBB' 대문자
 EXAMPLE = {
     "main": {"hex": "#3E3028", "name": "로스팅 브라운", "reason": "원두를 볶은 색에서 가져왔습니다"},
@@ -44,6 +48,8 @@ EXAMPLE = {
 PALETTE_RULE = (
     f"메인 컬러 1개와 서브 컬러 {MIN_SUBS}~{MAX_SUBS}개를 고르세요.\n"
     "  - 메인은 간판·로고에 쓸 대표색입니다. 브랜드의 성격이 한눈에 드러나야 합니다.\n"
+    "    **흰 배경 위에 또렷하게 보일 만큼 진해야 합니다.** 로고를 이 색으로 그립니다.\n"
+    "    베이지·아이보리처럼 흰색에 가까운 색을 메인으로 고르면 로고가 흐려집니다.\n"
     "  - 서브 중 하나는 배경으로 쓸 밝은 색으로 잡으세요. 여백이 있어야 글이 읽힙니다.\n"
     "  - 나머지 서브는 포인트 색입니다. 메인과 같은 계열로 가면 밋밋해집니다.\n"
     "hex 는 반드시 '#' 을 붙인 6자리 **대문자**로 씁니다.\n"
@@ -176,8 +182,52 @@ def generate_palette(brief: dict, naming: dict | None = None) -> dict:
         print(f"   ⚠️  [3] {provider} 호출 실패({exc}) — 예시 값으로 대신합니다")
         return dict(EXAMPLE, used_example=True)
 
+    palette = _retry_if_main_too_light(palette, brief, naming, api_key, call)
+
     print(f"   🤖 [3] {provider} 로 생성했습니다"
           f" (메인 {palette['main']['hex']} · 서브 {len(palette['subs'])}개)")
+    return palette
+
+
+def _main_contrast(palette: dict) -> float:
+    """메인 컬러와 흰 배경의 명도 대비. 계산할 수 없으면 충분한 것으로 본다."""
+    try:
+        from brand_result.store import contrast_ratio
+
+        return contrast_ratio(palette["main"]["hex"], "#FFFFFF")
+    except Exception:
+        return MIN_MAIN_CONTRAST
+
+
+def _retry_if_main_too_light(palette: dict, brief: dict, naming: dict | None,
+                             api_key: str, call) -> dict:
+    """메인이 흰 배경에 묻히면 한 번만 다시 청한다.
+
+    로고를 이 색으로 그리므로, 메인이 흰색에 가까우면 시안 전체가 흐려진다.
+    다시 받은 것도 밝으면 원래 것을 쓴다 — 색은 사람이 판단할 문제이고,
+    대비 경고는 `brand_result.md` 에 남는다.
+    """
+    before = _main_contrast(palette)
+    if before >= MIN_MAIN_CONTRAST:
+        return palette
+
+    ask = (
+        f"고른 메인 컬러 {palette['main']['hex']} 는 흰 배경 대비가 {before:.2f}:1 로"
+        " 너무 밝습니다. 이 색으로 로고를 그리면 형태가 보이지 않습니다.\n"
+        f"흰 배경 대비 {MIN_MAIN_CONTRAST:.0f}:1 이상이 되도록"
+        " **더 진한 색으로 메인만 바꿔** 다시 고르세요.\n"
+        "밝은 색이 필요하면 그것은 서브로 내리세요. 서브는 그대로 두어도 됩니다.\n\n"
+        + build_prompt(brief, naming)
+    )
+    try:
+        after = _normalize(call(ask, api_key))
+    except Exception:
+        return palette
+
+    if _main_contrast(after) > before:
+        print(f"   🔁 [3] 메인이 흰 배경에 묻혀 다시 청했습니다"
+              f" ({palette['main']['hex']} -> {after['main']['hex']})")
+        return after
     return palette
 
 

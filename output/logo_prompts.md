@@ -60,5 +60,5 @@ simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid
 생성: OpenAI 이미지 API
 
 ```text
-clean line-art emblem, a single continuous outline suggesting break in routine, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins
+clean line-art emblem, a single continuous outline suggesting pause in daily life, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins
 ```

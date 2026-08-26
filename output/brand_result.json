@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T11:51:12",
+  "generated_at": "2026-08-26T12:02:09",
   "brief": {
     "industry": "카페",
     "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",
@@ -19,59 +19,65 @@
   "naming": {
     "naming": [
       {
-        "name": "쉼터",
-        "english": "Sheemter",
-        "reading": "SHEEM-ter",
-        "meaning": "일상 속에서 여유와 쉼을 찾을 수 있는 공간이란 뜻입니다."
+        "name": "여유카페",
+        "english": "YeoYuCafe",
+        "reading": "YEO-yu-KEI-fey",
+        "meaning": "일상 속 여유를 찾는 사람들을 위한 따뜻한 공간."
+      },
+      {
+        "name": "쉼표",
+        "english": "SoomPyo",
+        "reading": "SOOM-pyo",
+        "meaning": "바쁜 일상 속 짧은 쉼과 감성을 제공하는 카페."
       },
       {
         "name": "온기",
         "english": "Ongi",
         "reading": "ON-gee",
-        "meaning": "따뜻함과 정서적 안식을 제공하는 카페를 의미합니다."
+        "meaning": "고요한 일상의 따뜻한 온기를 나누는 곳."
       },
       {
-        "name": "카페따기",
-        "english": "Cafedda",
-        "reading": "CA-feh-da",
-        "meaning": "'따뜻한 커피 한 모금'의 의미를 담은 이름입니다."
+        "name": "감성커넥트",
+        "english": "EmotionConnect",
+        "reading": "EMO-tion-CON-nect",
+        "meaning": "감성과 연결되는 특별한 순간들을 제공합니다."
       }
     ],
     "slogans": [
-      "귀찮은 일상에 쉼표를",
-      "따뜻한 감성을 담았습니다",
-      "쉼터에서 여유를 만나다"
+      "일상 속 여유를 찾는 곳",
+      "따뜻한 감성이 흐르는 공간",
+      "여유카페, 나만의 쉼표"
     ],
-    "story": "혼잡한 도시에서 20~30대 직장인들은 일상 속에서 자주 불안함과 바쁨에 갇혀, 진정한 여유를 잃어버리곤 합니다. 이러한 환경에서 우리는 그들에게 필요한 쉼터를 만들기로 결심했습니다. 우리의 철학은 고객에게 따뜻함과 감성을 전달하며 소중한 일상의 순간들을 제공하려는 것입니다. 우리는 일상 속에서도 가벼운 마음과 여유를 느낄 수 있는 공간을 지향합니다. 앞으로도 우리는 바쁜 현대인들에게 최적의 여유 공간이 되고, 쉼의 가치를 강조하여 더 많은 사람들에게 편안한 탈출구가 될 수 있도록 끊임없이 노력할 것입니다.",
+    "story": "여유카페는 현대 직장인들이 바쁜 일상에서 느끼는 피로와 스트레스를 해소하기 위해 탄생한 특별한 공간입니다. 반복되는 일상 속에서 짧은 휴식의 기회를 제공하며, 사람들의 마음을 따뜻하게 감싸는 소중한 장소가 되기를 진심으로 소망합니다. 우리 카페는 단순한 커피와 디저트를 제공하는 것을 넘어, 온전한 휴식과 회복을 위한 성소로 자리 잡고자 합니다. 앞으로 여유를 찾는 많은 이들에게 진정한 쉼과 감동을 선사하는 카페로 성장해 나아가며, 일상의 스트레스를 잊게 하고 기분 좋은 순간을 함께 만들어가는 곳이 될 것입니다.",
     "competitors": [
       {
         "competitor": "스타벅스",
-        "position": "프리미엄 커피 시장의 선두주자",
-        "differentiation": "스타벅스의 고급감 대신, 감성을 강조하는 따뜻한 분위기의 공간을 제공합니다."
+        "position": "고급 커피와 다양한 메뉴를 제공하는 주요 브랜드",
+        "differentiation": "여유카페는 일상의 작은 쉼을 모티브로 하여 감성적인 공간과 맞춤형 서비스를 제공하며 차별화합니다."
       },
       {
         "competitor": "블루보틀",
-        "position": "스페셜티 커피의 대명사",
-        "differentiation": "블루보틀의 과도한 세련됨 대신, 누구나 편안하게 느낄 수 있는 따뜻한 감성을 유지합니다."
+        "position": "스페셜티 커피를 집중하는 트렌디한 선택",
+        "differentiation": "여유카페는 커피뿐만 아니라 감성을 통해 일상의 즐거움을 찾도록 돕는 창의적인 공간을 지향합니다."
       }
     ]
   },
   "palette": {
     "main": {
-      "hex": "#A25B30",
-      "name": "테라코타 브라운",
-      "reason": "따뜻하고 감성적인 느낌을 주며, 일상 속 편안함과 여유를 표현합니다."
+      "hex": "#8B5E3D",
+      "name": "소프트 브라운",
+      "reason": "따뜻함과 여유를 느낄 수 있는 부드러운 색으로, 일상의 쉼표를 표현합니다."
     },
     "subs": [
       {
-        "hex": "#F5E6D2",
-        "name": "부드러운 베이지",
-        "reason": "밝고 세련된 느낌을 주어 여백을 강조하고, 글자가 잘 읽히도록 도와줍니다."
+        "hex": "#F5E1C7",
+        "name": "크림 베이지",
+        "reason": "밝고 부드러운 톤으로 전체적인 여백을 제공하며, 편안한 분위기를 조성합니다."
       },
       {
-        "hex": "#D79B6E",
-        "name": "모래색",
-        "reason": "메인 컬러와 조화를 이루면서도 포인트를 주어 감각적인 분위기를 살립니다."
+        "hex": "#C2A57A",
+        "name": "부드러운 카멜",
+        "reason": "메인 색과 조화를 이루면서 따뜻한 포인트를 주어 세련된 느낌을 강조합니다."
       }
     ]
   },
@@ -85,7 +91,7 @@
       "source": "openai"
     },
     {
-      "prompt": "clean line-art emblem, a single continuous outline suggesting break in routine, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins",
+      "prompt": "clean line-art emblem, a single continuous outline suggesting pause in daily life, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins",
       "source": "openai"
     }
   ],
