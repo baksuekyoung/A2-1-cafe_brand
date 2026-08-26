@@ -44,7 +44,7 @@ Draw an emblem made of one continuous outline that suggests a pause in everyday 
 생성: codyssey
 
 ```text
-minimalist geometric icon, single abstract symbol suggesting relaxation, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space
+minimalist geometric icon, single abstract symbol suggesting calmness, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space
 ```
 
 ### 시안 2

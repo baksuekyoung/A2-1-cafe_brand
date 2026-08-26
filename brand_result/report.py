@@ -268,3 +268,86 @@ def build_markdown(payload: dict) -> str:
         *_logo_block(payload.get("logos")),
     ]
     return "\n".join(lines) + "\n"
+
+
+# --- 화면에 보여 줄 요약 ----------------------------------------------------
+#
+# 명세의 실행 예시가 생성된 내용을 그 자리에서 보여 준다. 단계 성공 여부만 찍으면
+# 돌린 사람이 무엇이 만들어졌는지 알 수 없어 파일을 일일이 열어야 한다.
+
+들여쓰기 = " " * 7
+
+
+def summary_lines(step_name: str, value: object) -> list[str]:
+    """한 단계의 결과를 화면용 몇 줄로 줄인다. 보여 줄 게 없으면 빈 목록."""
+    if "[2]" in step_name:
+        return _naming_summary(value)
+    if "[3]" in step_name:
+        return _palette_summary(value)
+    if "[4]" in step_name:
+        return _logo_summary(value)
+    return []
+
+
+def _naming_summary(naming: object) -> list[str]:
+    if not isinstance(naming, dict):
+        return []
+
+    줄 = []
+    후보 = [c for c in (naming.get("naming") or []) if isinstance(c, dict)]
+    if 후보:
+        첫째 = 후보[0]
+        이름 = str(첫째.get("name") or "")
+        영문 = str(첫째.get("english") or "")
+        붙임 = f"{이름} ({영문})" if 영문 else 이름
+        줄.append(f"{들여쓰기}브랜드명  {붙임} — {str(첫째.get('meaning') or '')[:46]}")
+        나머지 = [f"{str(c.get('name') or '')}"
+                  + (f" ({c['english']})" if c.get("english") else "")
+                  for c in 후보[1:]]
+        if 나머지:
+            줄.append(f"{들여쓰기}          " + " · ".join(나머지))
+
+    슬로건 = [str(s) for s in (naming.get("slogans") or []) if str(s).strip()]
+    for index, 문구 in enumerate(슬로건):
+        꼬리표 = "슬로건    " if index == 0 else "          "
+        줄.append(f"{들여쓰기}{꼬리표}{문구}")
+
+    story = str(naming.get("story") or "")
+    if story:
+        줄.append(f"{들여쓰기}스토리    {len(story)}자")
+
+    경쟁사 = [c for c in (naming.get("competitors") or []) if isinstance(c, dict)]
+    if 경쟁사:
+        이름들 = ", ".join(str(c.get("competitor") or "") for c in 경쟁사)
+        줄.append(f"{들여쓰기}경쟁사    {이름들} — 차별화 포인트 {len(경쟁사)}건")
+    return 줄
+
+
+def _palette_summary(palette: object) -> list[str]:
+    if not isinstance(palette, dict):
+        return []
+
+    줄 = []
+    main = palette.get("main")
+    if isinstance(main, dict):
+        이름 = str(main.get("name") or "")
+        줄.append(f"{들여쓰기}메인      {main.get('hex', '')} {이름}")
+
+    subs = [s for s in (palette.get("subs") or []) if isinstance(s, dict)]
+    if subs:
+        표기 = " · ".join(f"{s.get('hex', '')} {s.get('name', '')}".strip() for s in subs)
+        줄.append(f"{들여쓰기}서브      {표기}")
+    return 줄
+
+
+def _logo_summary(logos: object) -> list[str]:
+    if not isinstance(logos, list) or not logos:
+        return []
+
+    출처 = [str((l or {}).get("source") or "?") for l in logos if isinstance(l, dict)]
+    센것 = " · ".join(f"{출처.count(s)}장 {s}" for s in dict.fromkeys(출처))
+    줄 = [f"{들여쓰기}시안      {len(logos)}장 ({센것})"]
+    if "placeholder" in 출처:
+        줄.append(f"{들여쓰기}          ⚠️  자리표시자가 섞여 있습니다."
+                  " logo_prompts.md 로 직접 만들어 교체하세요")
+    return 줄

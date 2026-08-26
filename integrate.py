@@ -61,6 +61,11 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
     for result in results:
         note = result.message or (f"규격 확인 필요 {len(result.problems)}건" if result.problems else "")
         print(f"  {MARK.get(result.status, '?')} {result.name}" + (f" — {note}" if note else ""))
+        # 무엇이 만들어졌는지 그 자리에서 보여 준다. 성공 여부만 찍으면
+        # 돌린 사람이 파일을 일일이 열어 봐야 안다.
+        if result.ok:
+            for line in report.summary_lines(result.name, result.value):
+                print(line)
 
     payload = runner.to_result_dict(results, datetime.now().isoformat(timespec="seconds"))
 

@@ -30,27 +30,41 @@ $ python main.py
 🎨 브랜드 아이덴티티 — 결과 통합
 
    🤖 [2] 코디세이 로 생성했습니다
-   🤖 [3] 코디세이 로 생성했습니다 (메인 #5B3E2F · 서브 3개)
+   🤖 [3] 코디세이 로 생성했습니다 (메인 #5B3E36 · 서브 3개)
    🖼️  [4] 로고 시안 1장 생성 (codyssey)
    🖼️  [4] 로고 시안 1장 생성 (codyssey)
    🖼️  [4] 로고 시안 1장 생성 (codyssey)
   ✅ [1] 브리프
   ✅ [2] 네이밍·슬로건·스토리
+       브랜드명  누크 (Nook) — 아늑하고 구석진 나만의 공간을 뜻하는 영어 낱말로, 복잡한 도심 속 숨어있는 안식처
+                 에밀 (Emile) · 온스 (Ounce) · 스테이 (Stay) · 포르투 (Porto)
+       슬로건    모니터 앞의 긴장을 잠시 내려놓고 싶을 때
+                 갓 구운 빵의 온기와 부드러운 우유 거품의 감각
+                 당신의 일상에 쉼표를 찍어주는 곳, 누크
+       스토리    330자
+       경쟁사    블루보틀, 스타벅스 — 차별화 포인트 2건
   ✅ [3] 컬러 팔레트
+       메인      #5B3E36 누크 브라운
+       서브      #F5EFE6 부드러운 크림 · #C7613A 소프트 테라코타 · #7F9A86 세이지
   ✅ [4] 로고 시안
+       시안      3장 (3장 codyssey)
 
-  💾 ...\output\brand_result.json
-  💾 ...\output\brand_result.md
-  💾 ...\output\run_report.md
-  💾 ...\output\logo_prompts.md
-  💾 ...\output\color_palette.png
-  💾 ...\output\brand_tokens.css
-  💾 ...\output\logo_01.png
-  💾 ...\output\logo_02.png
-  💾 ...\output\logo_03.png
+  💾 .\outputrand_result.json
+  💾 .\outputrand_result.md
+  💾 .\output
+un_report.md
+  💾 .\output\logo_prompts.md
+  💾 .\output\color_palette.png
+  💾 .\outputrand_tokens.css
+  💾 .\output\logo_01.png
+  💾 .\output\logo_02.png
+  💾 .\output\logo_03.png
 
-✅ 완료 단계 4/4 · ...\output
+✅ 완료 단계 4/4 · .\output
 ```
+
+**생성된 내용을 그 자리에서 보여 줍니다.** 명세의 실행 예시가 그렇게 되어 있고,
+단계 성공 여부만 찍으면 돌린 사람이 파일을 일일이 열어 봐야 하기 때문입니다.
 
 명세가 요구하는 산출물이 모두 나왔습니다.
 
@@ -60,22 +74,13 @@ $ python main.py
 | `color_palette.png` | ⭕ 컬러 팔레트 시각화 |
 | `logo_01~03.png` | ⭕ 로고 시안 |
 
-### 생성된 내용 (요약)
-
-```
-$ python -c "import json,pathlib; d=json.loads(pathlib.Path('output/brand_result.json').read_text(encoding='utf-8')); ..."
-
-네이밍 5개 · 슬로건 3개 · 스토리 286자 · 로고 3장 · 경쟁사 분석 2건
-메인 #5B3E2F · 서브 3개
-```
-
 | 이름 | 영문 표기 | 읽는 법 | 유형 |
 | --- | --- | --- | --- |
-| 페이즈 | Paze | PA-zeuh | 은유·조어 |
-| 온김 | Ongim | OWN-gim | 제품 직관 |
-| 소로우 | Thoreau | thuh-ROW | 문학·인물 |
-| 모먼 | Momen | MO-muhn | 속성 강조 |
-| 브리엔츠 | Brienz | BREE-enz | 지명·역사 |
+| 누크 | Nook | NUUK-euh | 은유·조어 |
+| 에밀 | Emile | eh-MEEL | 문학·인물 |
+| 온스 | Ounce | AWN-seu | 제품 직관 |
+| 스테이 | Stay | STE-ee | 속성 강조 |
+| 포르투 | Porto | POHR-toh | 지명·역사 |
 
 전체 결과는 [`../output/brand_result.md`](../output/brand_result.md) 에 있습니다.
 
