@@ -14,13 +14,13 @@
 ### 시안 1
 
 ```text
-Draw a minimalist abstract symbol that suggests calm and unhurried ease. Flat vector illustration style, centered in the frame with generous empty space around it. Use roasted coffee brown as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
+Draw a minimalist abstract symbol that suggests calm and unhurried ease. Flat vector illustration style, centered in the frame with generous empty space around it. Use warm neutral tones as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
 ```
 
 ### 시안 2
 
 ```text
-Draw a single clean geometric icon that suggests warmth, drawn in thin even lines. Flat vector illustration style, centered in the frame with generous empty space around it. Use roasted coffee brown as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
+Draw a single clean geometric icon that suggests warmth, drawn in thin even lines. Flat vector illustration style, centered in the frame with generous empty space around it. Use warm neutral tones as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
 ```
 
 마음에 드는 그림이 나오면 `logo_01.png` · `logo_02.png` 로 저장해
@@ -38,7 +38,7 @@ Draw a single clean geometric icon that suggests warmth, drawn in thin even line
 생성: OpenAI 이미지 API
 
 ```text
-minimalist geometric icon, single abstract symbol suggesting leisure, solid roasted coffee brown shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space
+minimalist geometric icon, single abstract symbol suggesting leisure, solid warm neutral tones shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space
 ```
 
 ### 시안 2
@@ -46,5 +46,5 @@ minimalist geometric icon, single abstract symbol suggesting leisure, solid roas
 생성: OpenAI 이미지 API
 
 ```text
-simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid roasted coffee brown on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space
+simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid warm neutral tones on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space
 ```
