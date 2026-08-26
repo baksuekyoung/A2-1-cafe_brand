@@ -9,6 +9,7 @@
 하나만 있으면 된다. 있는 것을 모두 확인하고, 이미지 생성까지 되는지도 본다.
 """
 
+import argparse
 import json
 import os
 import sys
@@ -55,11 +56,15 @@ def _key(name: str) -> str:
     return "" if value in 자리표시자 else value
 
 
-def check_codyssey(api_key: str) -> tuple[bool, str]:
-    """코디세이 공개 API 를 확인한다. 채팅과 이미지를 모두 본다.
+def check_codyssey(api_key: str, 이미지도: bool = False) -> tuple[bool, str]:
+    """코디세이 공개 API 를 확인한다.
 
     콘솔에서 'Anthropic' 호환으로 발급한 키는 채팅에서 403 이 난다.
     그 경우를 알아볼 수 있게 응답을 그대로 보여 준다.
+
+    Args:
+        이미지도: True 면 이미지 생성까지 확인한다. **월 한도를 실제로 깎으므로**
+            기본은 채팅만 본다. `--image` 로 켠다.
     """
     base = (os.environ.get("CODYSSEY_BASE_URL") or CODYSSEY_BASE_URL).rstrip("/")
     설명 = []
@@ -86,7 +91,11 @@ def check_codyssey(api_key: str) -> tuple[bool, str]:
     if not 채팅됨:
         설명.append("채팅 실패(" + " / ".join(시도) + ")")
 
-    # 이미지는 로고 생성에 쓰므로 함께 본다.
+    if not 이미지도:
+        설명.append("이미지 확인 생략(--image 로 켬)")
+        return 채팅됨, " / ".join(설명)
+
+    # 이미지는 로고 생성에 쓰므로 함께 본다. 호출 한 번이 한도에서 차감된다.
     body = json.dumps({
         "model": CODYSSEY_IMAGE_MODEL,
         "prompt": "a plain white square",
@@ -171,9 +180,12 @@ def check_gemini(api_key: str) -> tuple[bool, str]:
     return False, " / ".join(시도)
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     _load_env()
-    공급자 = [("코디세이", _key("CODYSSEY_OPENAI_KEY"), check_codyssey),
+
+    코디세이검사 = (lambda 키: check_codyssey(키, 이미지도=args.image))
+    공급자 = [("코디세이", _key("CODYSSEY_OPENAI_KEY"), 코디세이검사),
               ("OpenAI", _key("OPENAI_API_KEY"), check_openai),
               ("Gemini", _key("GEMINI_API_KEY"), check_gemini)]
 
@@ -199,6 +211,15 @@ def main() -> int:
         return 0
     print("❌ 키는 있으나 호출에 실패했습니다. 키 값과 결제·쿼터 상태를 확인해 주십시오.")
     return 1
+
+
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="API 키·인터넷·호출 권한이 정상인지 확인합니다.",
+        epilog="기본은 채팅만 확인합니다. 이미지 확인은 월 한도를 깎으므로 --image 로 켭니다.")
+    parser.add_argument("--image", action="store_true",
+                        help="코디세이 이미지 생성까지 확인 (호출 1회가 한도에서 차감됨)")
+    return parser.parse_args(argv)
 
 
 if __name__ == "__main__":

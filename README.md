@@ -46,7 +46,8 @@ GEMINI_API_KEY=본인의_API_키
 (`Anthropic` 호환 키는 채팅에서 거부됩니다).
 
 ```bash
-python test_api.py      # 연결 확인
+python test_api.py              # 연결 확인 (채팅만 — 한도를 쓰지 않음)
+python test_api.py --image      # 이미지 생성까지 확인 (호출 1회 차감)
 ```
 
 공급자는 **코디세이 → OpenAI → Gemini → Pollinations** 순으로 시도합니다.
