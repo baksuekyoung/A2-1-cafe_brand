@@ -9,19 +9,19 @@
 
 ```
 $ git rev-list --count HEAD
-40
+43
 ```
 
-커밋 **40개**. 제출 점검표 기준(10개 이상)을 넘습니다.
+커밋 **43개**. 제출 점검표 기준(10개 이상)을 넘습니다.
 
 ### 커밋 메시지 타입별
 
 | 타입 | 개수 | 무엇 |
 | --- | ---: | --- |
-| `feat:` | 15 | 기능 추가 |
-| `docs:` | 13 | 문서 |
+| `feat:` | 16 | 기능 추가 |
+| `docs:` | 14 | 문서 |
 | `fix:` | 9 | 버그 수정 |
-| `chore:` | 2 | 잡일 |
+| `chore:` | 3 | 잡일 |
 | `merge:` | 1 | 브랜치 병합 |
 
 커밋 메시지는 **한글**로 쓰고 `<타입>: <내용>` 형식을 지킵니다.
@@ -36,8 +36,10 @@ $ git branch -a
   feature/submission-docs
 * main
   remotes/origin/HEAD -> origin/main
+  remotes/origin/feature/submission-docs
   remotes/origin/main
   remotes/team/HEAD -> team/main
+  remotes/team/feature/submission-docs
   remotes/team/main
 ```
 
@@ -56,6 +58,9 @@ dce0564 merge: feature/submission-docs — 제출 증빙 문서를 본선에 반
 
 ```
 $ git log --oneline --graph --all
+* ca9713a feat: 생성된 내용을 화면에 바로 보여 준다
+* dd5e4a6 chore: .env.example 에서 개인 키 항목을 빼고 코디세이만 남긴다
+* d76baea docs: 커밋 이력과 브랜치 그래프를 텍스트로 남긴다
 *   dce0564 merge: feature/submission-docs — 제출 증빙 문서를 본선에 반영한다
 |\  
 | * 34ce2d6 docs: 제출 점검표가 요구하는 증빙 문서를 채운다
@@ -106,10 +111,10 @@ $ git log --oneline --graph --all
 
 ```
 $ git remote -v
-origin  https://github.com/linkcontent7-huisun/A2-1-team-step5.git (fetch)
-origin  https://github.com/linkcontent7-huisun/A2-1-team-step5.git (push)
-team    https://github.com/baksuekyoung/A2-1-cafe_brand.git (fetch)
-team    https://github.com/baksuekyoung/A2-1-cafe_brand.git (push)
+origin	https://github.com/linkcontent7-huisun/A2-1-team-step5.git (fetch)
+origin	https://github.com/linkcontent7-huisun/A2-1-team-step5.git (push)
+team	https://github.com/baksuekyoung/A2-1-cafe_brand.git (fetch)
+team	https://github.com/baksuekyoung/A2-1-cafe_brand.git (push)
 ```
 
 **`team` 이 제출 대상**입니다(팀장 저장소). `origin` 은 같은 내용의 개인 백업입니다.
