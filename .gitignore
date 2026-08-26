@@ -12,3 +12,6 @@ output/*
 !output/*.json
 !output/*.md
 !output/*.css
+
+# 로컬 확인용 도구 — 제출물이 아니므로 올리지 않는다
+tools/
