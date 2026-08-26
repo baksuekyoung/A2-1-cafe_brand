@@ -63,6 +63,11 @@ POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}"
 # 계정마다 열려 있는 모델이 다르다. 앞에서부터 시도해 먼저 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-image-1", "dall-e-3")
 
+# 코디세이 공개 API. 소속 기관 키로 정산되므로 개인 결제분을 쓰지 않는다.
+# 이미지 모델은 모두 차감 배수 1 이라 품질 좋은 것부터 시도한다.
+CODYSSEY_BASE_URL = "https://copa.codyssey.kr"
+CODYSSEY_IMAGE_MODELS = ("gpt-image-2", "imagen-4", "gpt-image-1-mini")
+
 # 명세는 2~3장을 요구한다. 기본 2장, 환경변수로 3장까지.
 LOGO_COUNT = logo_prompt.LOGO_COUNT
 MAX_LOGO_COUNT = logo_prompt.MAX_LOGO_COUNT
@@ -82,6 +87,50 @@ def _logo_count() -> int:
 # 파이썬 기본 User-Agent 는 Pollinations 앞단 방화벽이 403 으로 막는다.
 BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
 TIMEOUT = 90
+
+
+def _codyssey_image(prompt: str, api_key: str) -> bytes | None:
+    """코디세이 이미지 생성 API 를 부른다. 못 쓰면 None.
+
+    OpenAI 와 요청 모양은 비슷하지만 **응답 경로가 다르다.**
+
+        OpenAI    data[0].b64_json
+        코디세이   result.images[0].b64_json
+
+    `response_format` 을 b64_json 으로 줘야 키만으로 이미지를 받는다.
+    안 주면 서버에 저장된 url 만 오고, 그 url 을 다시 받아 와야 한다.
+    """
+    base = (os.environ.get("CODYSSEY_BASE_URL") or CODYSSEY_BASE_URL).rstrip("/")
+    for model in CODYSSEY_IMAGE_MODELS:
+        body = json.dumps({
+            "model": model,
+            "prompt": prompt,
+            "size": "1024x1024",
+            "response_format": "b64_json",
+        }).encode("utf-8")
+        request = urllib.request.Request(
+            f"{base}/api/v1/images",
+            data=body,
+            headers={"Content-Type": "application/json",
+                     "Authorization": f"Bearer {api_key}"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
+                payload = json.loads(response.read().decode("utf-8"))
+            b64 = payload["result"]["images"][0]["b64_json"]
+            return _to_png(base64.b64decode(b64))
+        except urllib.error.HTTPError as exc:
+            # 401·403 은 모델 문제가 아니라 키 문제다. 조용히 넘어가면
+            # 사용자는 자기 키가 틀린 줄 모른다.
+            if exc.code in (401, 403):
+                print(f"   ⚠️  [4] 코디세이 키가 거부되었습니다 (HTTP {exc.code})"
+                      " — .env 의 CODYSSEY_OPENAI_KEY 와 남은 한도를 확인하세요")
+                return None
+            continue  # 이 모델은 못 쓴다. 다음 후보로.
+        except Exception:
+            continue
+    return None
 
 
 def _openai_image(prompt: str, api_key: str) -> bytes | None:
@@ -203,13 +252,17 @@ def generate_logos(brief: dict, naming: dict | None = None,
     except Exception:
         pass
 
+    codyssey_key = (os.environ.get("CODYSSEY_OPENAI_KEY") or "").strip()
     openai_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
     gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
 
     logos = []
     for prompt in logo_prompt.make_prompts(brief or {}, naming, palette, _logo_count()):
         image, source = None, ""
-        if openai_key:
+        # 코디세이가 맨 앞이다 — 기관 키로 정산되므로 개인 결제분을 아낀다.
+        if codyssey_key:
+            image, source = _codyssey_image(prompt, codyssey_key), "codyssey"
+        if image is None and openai_key:
             image, source = _openai_image(prompt, openai_key), "openai"
         if image is None and gemini_key:
             image, source = _gemini_image(prompt, gemini_key), "gemini"

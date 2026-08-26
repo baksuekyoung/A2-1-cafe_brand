@@ -33,16 +33,24 @@ pip install -r requirements.txt
 
 ### 2. API 키 등록
 
-`.env.example`을 `.env`로 복사하고 **둘 중 하나**를 채웁니다.
+`.env.example`을 `.env`로 복사하고 **아래 중 하나**를 채웁니다.
 
 ```
+CODYSSEY_OPENAI_KEY=코디세이_공개_API_키    ← 권장
 OPENAI_API_KEY=본인의_API_키
 GEMINI_API_KEY=본인의_API_키
 ```
 
+**코디세이 공개 API를 먼저 씁니다.** 소속 기관 키로 정산되어 개인 결제분을 쓰지 않고,
+텍스트와 이미지를 한 키로 처리합니다. 콘솔에서 **OpenAI 호환** 키를 발급받으세요
+(`Anthropic` 호환 키는 채팅에서 거부됩니다).
+
 ```bash
 python test_api.py      # 연결 확인
 ```
+
+공급자는 **코디세이 → OpenAI → Gemini → Pollinations** 순으로 시도합니다.
+앞이 막히면 다음으로 넘어가므로 어느 하나만 있어도 됩니다.
 
 > 키가 없으면 [2]·[3]이 예시 값으로 채워집니다. 파이프라인 확인용 폴백이므로
 > **실제 AI 생성 결과를 얻으려면 키가 필요합니다.** 예시 값을 쓴 자리는 `run_report.md`에 기록됩니다.
@@ -161,7 +169,7 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | 4. LLM으로 슬로건 3개 | ✅ | `naming.py` |
 | 5. LLM으로 스토리 300자 내외 | ✅ | `naming.py` — 280자 미달 시 재요청 |
 | 6. LLM으로 컬러 팔레트 + PNG 시각화 | ✅ | `palette.py` · `palette_png.py` |
-| 7. 이미지 API로 로고 2~3개 PNG | ✅ | `logo.py` — OpenAI→Gemini→Pollinations |
+| 7. 이미지 API로 로고 2~3개 PNG | ✅ | `logo.py` — 코디세이→OpenAI→Gemini→Pollinations |
 | 8. `brand_result.json` + 개별 PNG 저장 | ✅ | `store.py` |
 | 9. API 실패 시 안내 후 다음 단계 진행 | ✅ | `runner.run_step` |
 | 10. 키를 코드에 쓰지 않음 | ✅ | `.env` → `load_dotenv()` |
@@ -225,7 +233,7 @@ brand_result/
 python -m pytest -q
 ```
 
-**168개.** 대부분 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
+**185개.** 대부분 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
 규격이 어긋날 때, 저장이 불가능할 때, 입력이 잘못됐을 때,
 LLM이 hex를 소문자나 `rgb()`로 줬을 때, 로고 프롬프트에 한국어가 섞였을 때.
 

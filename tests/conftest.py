@@ -19,7 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 STEP_NAMES = ("brief", "naming", "palette", "logo")
 
-API_KEY_NAMES = ("OPENAI_API_KEY", "GEMINI_API_KEY")
+API_KEY_NAMES = ("OPENAI_API_KEY", "GEMINI_API_KEY",
+                 "CODYSSEY_OPENAI_KEY", "CODYSSEY_ANTHROPIC_KEY")
 
 
 @pytest.fixture(autouse=True)

@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import urllib.request
 from pathlib import Path
 
@@ -193,6 +194,11 @@ STORY_RETRIES = 2
 
 # 무료·저가 티어에서 막히는 모델이 있어 앞에서부터 시도하고 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
+
+# 코디세이 공개 API — 소속 기관 키로 정산되고 본인 월 한도에서 차감된다.
+# 차감 배수가 낮은 것부터 시도한다 (gpt-5-mini·gemini 계열 0.5, gpt-5.4 는 1).
+CODYSSEY_BASE_URL = "https://copa.codyssey.kr"
+CODYSSEY_MODELS = ("gpt-5-mini", "gemini-3-flash", "gpt-5.4-mini", "gpt-5.4")
 GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
 
 GEMINI_URL = (
@@ -278,17 +284,54 @@ def _call_openai(prompt: str, api_key: str) -> dict:
     Raises:
         RuntimeError: 모델을 하나도 못 쓴 경우.
     """
-    body = json.dumps({
-        "messages": [{"role": "user", "content": prompt}],
-        "response_format": {"type": "json_object"},
-    })
+    return _call_chat_api(prompt, api_key, OPENAI_CHAT_URL, OPENAI_MODELS,
+                          json_mode=True, 이름="OpenAI")
+
+
+def _call_codyssey(prompt: str, api_key: str) -> dict:
+    """코디세이 공개 API 를 부른다. OpenAI 와 같은 규격이라 호출부를 공유한다.
+
+    다른 점은 하나뿐이다 — `response_format` 을 받지 않는다.
+    보내면 HTTP 400 `unsupported_feature` 가 온다 (실측).
+    그래서 JSON 은 프롬프트로만 요구하고, 울타리는 벗겨 낸다.
+    """
+    return _call_chat_api(prompt, api_key, _codyssey_chat_url(), CODYSSEY_MODELS,
+                          json_mode=False, 이름="코디세이")
+
+
+def _codyssey_chat_url() -> str:
+    base = (os.environ.get("CODYSSEY_BASE_URL") or CODYSSEY_BASE_URL).rstrip("/")
+    return f"{base}/v1/chat/completions"
+
+
+def _strip_fence(text: str) -> str:
+    """```json ... ``` 울타리를 벗긴다.
+
+    JSON 강제 모드를 못 쓰는 공급자는 답을 코드블록으로 감싸 주는 일이 있다.
+    """
+    text = (text or "").strip()
+    if not text.startswith("```"):
+        return text
+    text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+    return re.sub(r"\s*```$", "", text).strip()
+
+
+def _call_chat_api(prompt: str, api_key: str, url: str, models,
+                   *, json_mode: bool, 이름: str) -> dict:
+    """OpenAI 규격 채팅 API 를 부른다. 되는 모델이 나올 때까지 앞에서부터 시도한다.
+
+    Raises:
+        RuntimeError: 모델을 하나도 못 쓴 경우.
+    """
+    기본 = {"messages": [{"role": "user", "content": prompt}]}
+    if json_mode:
+        기본["response_format"] = {"type": "json_object"}
 
     시도 = []
-    for model in OPENAI_MODELS:
-        payload = json.loads(body)
-        payload["model"] = model
+    for model in models:
+        payload = dict(기본, model=model)
         request = urllib.request.Request(
-            OPENAI_CHAT_URL,
+            url,
             data=json.dumps(payload).encode("utf-8"),
             headers={"Content-Type": "application/json",
                      "Authorization": f"Bearer {api_key}"},
@@ -297,7 +340,7 @@ def _call_openai(prompt: str, api_key: str) -> dict:
         try:
             with urllib.request.urlopen(request, timeout=90) as response:
                 answer = json.loads(response.read().decode("utf-8"))
-            data = json.loads(answer["choices"][0]["message"]["content"] or "")
+            data = json.loads(_strip_fence(answer["choices"][0]["message"]["content"]))
         except Exception as exc:  # 쿼터·권한·타임아웃·JSON 깨짐을 한데 묶는다
             시도.append(f"{model}={type(exc).__name__}")
             continue  # 이 모델은 못 쓴다. 다음 후보로.
@@ -306,7 +349,7 @@ def _call_openai(prompt: str, api_key: str) -> dict:
             return data
         시도.append(f"{model}=객체가 아님")
 
-    raise RuntimeError("사용 가능한 OpenAI 모델이 없습니다 (" + ", ".join(시도) + ")")
+    raise RuntimeError(f"사용 가능한 {이름} 모델이 없습니다 (" + ", ".join(시도) + ")")
 
 
 def _normalize(data: dict) -> dict:
@@ -356,21 +399,24 @@ def _normalize(data: dict) -> dict:
 
 
 def _pick_provider():
-    """쓸 수 있는 LLM 을 고른다.
+    """쓸 수 있는 LLM 을 고른다. 앞에서부터 키가 있는 것을 쓴다.
 
-    OpenAI 키가 있으면 그것을, 없고 Gemini 키가 있으면 Gemini 를 쓴다.
+    코디세이가 맨 앞이다. 소속 기관 키로 정산되므로 개인 결제분을 쓰지 않는다.
+    한도가 떨어지거나 키가 없으면 뒤 공급자로 이어진다.
     명세는 'LLM API' 라고만 요구하므로 어느 쪽이든 된다.
 
     Returns:
-        (공급자 이름, 키, 호출 함수). 키가 없으면 키 자리가 빈 문자열.
+        (공급자 이름, 키, 호출 함수). 키가 하나도 없으면 키 자리가 빈 문자열.
     """
-    openai_key = (os.environ.get("OPENAI_API_KEY") or "").strip()
-    if openai_key:
-        return "OpenAI", openai_key, _call_openai
-
-    gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
-    if gemini_key:
-        return "Gemini", gemini_key, _call_gemini
+    후보 = (
+        ("코디세이", "CODYSSEY_OPENAI_KEY", _call_codyssey),
+        ("OpenAI", "OPENAI_API_KEY", _call_openai),
+        ("Gemini", "GEMINI_API_KEY", _call_gemini),
+    )
+    for 이름, 환경변수, 호출 in 후보:
+        키 = (os.environ.get(환경변수) or "").strip()
+        if 키:
+            return 이름, 키, 호출
 
     return "", "", _call_openai
 
