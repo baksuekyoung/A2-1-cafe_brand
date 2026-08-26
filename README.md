@@ -1,9 +1,19 @@
 # 브랜드 아이덴티티 생성기
 
+**저장소: <https://github.com/baksuekyoung/A2-1-cafe_brand>**
+
 브랜드 브리프(업종·타깃·키워드)를 JSON으로 입력하면 **브랜드명·슬로건·스토리·컬러 팔레트·로고 시안**을
 AI로 생성해 파일로 저장하는 CLI 프로그램입니다.
 
 > [Project A] · 주제 **카페** · Python 3.10 이상
+
+| 증빙 문서 | 내용 |
+| --- | --- |
+| [`docs/environment-setup.md`](docs/environment-setup.md) | 개발 환경 · `.gitignore` 근거 |
+| [`docs/execution-log.md`](docs/execution-log.md) | 실행 전문 · 오류 5가지 · 보안 확인 |
+| [`docs/git-log.md`](docs/git-log.md) | 커밋 이력과 브랜치 그래프 |
+| [`docs/명세-점검표.md`](docs/명세-점검표.md) | 명세 요구사항 대조표 |
+| [`docs/데이터-계약.md`](docs/데이터-계약.md) | 단계 간 입출력 규격 |
 
 ---
 
@@ -262,6 +272,312 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | 테스트가 실제 API를 호출 (17.6초) | `conftest.py`가 키 제거 + 네트워크 차단 (2.0초) |
 | 이미지 생성에 개인 결제분이 들어감 | **코디세이 공개 API**를 공급자 맨 앞에 붙임 (기관 키로 정산) |
 | `brief.py`가 검증을 건너뜀 — 이름만 `main`과 같고 실제로는 샘플 파일을 그냥 읽음 | `main.load_brief`를 부르게 통일. 필수 필드 없는 브리프가 통과하던 문제 해결 |
+
+---
+
+## 주요 함수
+
+각 단계는 **파일 하나 · 함수 하나**입니다. 이름과 시그니처는
+[`docs/데이터-계약.md`](docs/데이터-계약.md)가 정한 계약이며, `runner.STEPS`가 코드 쪽 표현입니다.
+
+### 파이프라인 — 단계별 진입점
+
+| 함수 | 인수 | 반환 | 역할 |
+| --- | --- | --- | --- |
+| `brief.load_brief()` | 없음 | `dict` | [1] 브리프를 읽어 검증. `main.load_brief`를 부른다 |
+| `naming.generate_naming(brief)` | `dict` | `dict` | [2] 브랜드명·슬로건·스토리·경쟁사 분석 |
+| `palette.generate_palette(brief, naming)` | `dict`, `dict` 또는 `None` | `dict` | [3] 메인 1 + 서브 2~3 컬러 |
+| `logo.generate_logos(brief, naming, palette)` | `dict`, `dict`/`None`, `dict`/`None` | `list` | [4] 로고 시안 2~3장 |
+
+앞 단계가 실패하면 그 자리에 `None`이 들어옵니다. **뒤 단계는 `None`을 받아도 죽지 않습니다.**
+
+### 진입점과 입력
+
+| 함수 | 인수 | 반환 | 역할 |
+| --- | --- | --- | --- |
+| `main.main(argv=None)` | `list[str]` 또는 `None` | `int` | 프로그램 시작. 종료 코드를 돌려준다 |
+| `main.parse_args(argv=None)` | `list[str]` 또는 `None` | `Namespace` | `--brief` `--output` `--logos`를 읽는다 |
+| `main.ask_brief(path_text=None)` | `str` 또는 `None` | `dict` | 경로를 묻고 검증. 인자를 주면 묻지 않는다 |
+| `main.ask_output(path_text=None)` | `str` 또는 `None` | `str` | 출력 폴더를 묻는다. 엔터면 `./output` |
+| `main.load_brief(path_text)` | `str` | `dict` | **읽고 검증하는 알맹이.** 오류마다 다른 메시지 |
+
+`load_brief`는 `BriefError`를 던집니다 — 파일 없음·확장자 오류·JSON 문법 오류·
+필수 필드 누락·자료형 불일치를 각각 구분합니다.
+
+### 통합과 검증
+
+| 함수 | 인수 | 반환 | 역할 |
+| --- | --- | --- | --- |
+| `integrate.run(output, debug, brief)` | `str`, `bool`, `dict`/`None` | `int` | [5] 네 단계를 돌리고 저장. `0` 정상 / `1` 저장 실패 / `2` 폴더 실패 |
+| `runner.run_step(label, module, func, checker, *args)` | — | `StepResult` | 한 단계 실행. **무슨 일이 있어도** `StepResult`를 돌려준다 |
+| `runner.run_all(brief, debug)` | `dict`/`None`, `bool` | `list[StepResult]` | [1]→[4] 순서대로. 앞이 무너져도 뒤를 시도 |
+| `runner.to_result_dict(results, generated_at)` | `list`, `str` | `dict` | 저장용 형태로. 실패한 자리는 `None` |
+| `validate.check_brief(brief)` | `object` | `list[str]` | 규격 위반 목록. **빈 리스트면 통과** |
+| `validate.check_naming(naming)` | `object` | `list[str]` | 개수·길이·영문 표기·읽는 법·개성까지 |
+| `validate.check_palette(palette)` | `object` | `list[str]` | hex 형식과 개수 |
+| `validate.check_logos(logos)` | `object` | `list[str]` | 자리표시자 이미지도 위반으로 잡는다 |
+
+검증 함수는 **예외를 던지지 않고 문자열 목록을 돌려줍니다.** 어긋나도 버리지 않고
+`run_report.md`에 적기 위해서입니다 — 채택은 사람이 판단할 문제입니다.
+
+### 저장과 문서
+
+| 함수 | 인수 | 반환 | 역할 |
+| --- | --- | --- | --- |
+| `store.ensure_output_dir(path)` | `str` | `Path` | 출력 폴더 생성 |
+| `store.save_json(result, output_dir)` | `dict`, `Path` | `Path` | `brand_result.json` (한글 그대로) |
+| `store.save_logos(logos, output_dir)` | `list`, `Path` | `list[Path]` | `logo_01.png` 형식으로 |
+| `store.save_css_tokens(palette, output_dir)` | `dict`, `Path` | `Path` | 컬러를 CSS 변수로 |
+| `store.contrast_ratio(fg, bg)` | `str`, `str` | `float` | WCAG 명도 대비 (1.0~21.0) |
+| `store.relative_luminance(hex_color)` | `str` | `float` | 상대 휘도 (0.0~1.0) |
+| `report.build_markdown(payload)` | `dict` | `str` | 사람이 읽는 결과 문서 |
+| `report.build_run_report(payload)` | `dict` | `str` | 단계별 성공·실패·예시 값 사용 여부 |
+| `report.strip_bytes(payload)` | `dict` | `dict` | JSON 저장 전 이미지 바이트 제거 |
+| `palette_png.save_palette_png(palette, output_dir)` | `dict`, `Path` | `Path` | 팔레트 PNG. matplotlib 없으면 직접 인코딩 |
+| `logo_prompt.make_prompts(brief, naming, palette, count)` | — | `list[str]` | 로고용 **영어** 프롬프트 |
+| `logo_prompt.build_human_prompts(brief, palette, count)` | — | `list[str]` | ChatGPT 등 대화형 도구용 문장 |
+
+---
+
+## 데이터 구조
+
+단계 사이에 오가는 것은 전부 **`dict`와 `list`** 입니다. 클래스를 두지 않은 이유는
+[설계 근거](#설계-근거)에 있습니다.
+
+### [1] 브리프 — 입력
+
+```python
+{
+    "industry": "카페",                              # 필수 · str
+    "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",  # 필수 · str
+    "keywords": ["여유", "따뜻함", "일상의 쉼표"],        # 필수 · list[str], 2개 이상
+    "tone": "따뜻하고 감성적이며 과하지 않게 세련된 분위기",   # 선택 · str
+    "competitors": ["블루보틀", "스타벅스"],             # 선택 · list[str]
+    "notes": "한글과 영어로 모두 활용하기 쉬운 이름을 원함",   # 선택 · str
+}
+```
+
+선택 필드는 **`main.py`가 기본값을 채워** 넘깁니다(`OPTIONAL_DEFAULTS`).
+그래서 뒤 단계는 키가 있는지 매번 확인하지 않아도 됩니다.
+
+### [2] 네이밍 — 후보마다 다섯 항목
+
+```python
+{
+    "naming": [
+        {
+            "name": "페이즈",          # 한글 이름
+            "english": "Paze",        # 영문 표기 (보너스 2번)
+            "reading": "PA-zeuh",     # 읽는 법 (보너스 2번)
+            "meaning": "Pace(속도)와 Pause(멈춤)를 결합하여…",
+            "type": "3",              # 네이밍 유형 1~5. 겹치면 쏠림으로 잡는다
+        },
+        # … 4~5개
+    ],
+    "slogans": ["…", "…", "…"],        # 정확히 3개
+    "story": "…",                      # 300자 내외
+    "competitors": [                   # 보너스 1번 — 택한 것
+        {
+            "competitor": "블루보틀",
+            "position": "미니멀리즘과 스페셜티 커피의 전문성을…",
+            "differentiation": "전문가적인 시선보다는 정서적 휴식에…",
+        },
+    ],
+    "used_example": True,              # 예시 값으로 대체됐을 때만 붙는다
+}
+```
+
+### [3] 컬러 팔레트
+
+```python
+{
+    "main": {
+        "hex": "#5B3E2F",              # '#RRGGBB' 대문자 6자리
+        "name": "모카 브라운",
+        "reason": "원두를 볶은 색에서 가져왔습니다",
+    },
+    "subs": [                          # 2~3개
+        {"hex": "#F6EDE3", "name": "크림 베이지", "reason": "여백을 만듭니다"},
+        {"hex": "#C77A3B", "name": "호박빛", "reason": "포인트 색입니다"},
+    ],
+}
+```
+
+`hex` 형식이 어긋나면 [5]가 **명도 대비를 계산하지 못합니다.** 그래서 소문자나 `#` 누락은
+`_normalize_color`가 고치고, 고칠 수 없는 값(`rgb(...)` 등)은 버립니다.
+
+### [4] 로고
+
+```python
+[
+    {
+        "image_bytes": b"...PNG 바이트...",
+        "prompt": "minimalist geometric icon, single abstract symbol…",
+        "source": "codyssey",     # codyssey|openai|gemini|pollinations|placeholder
+    },
+    # … 2~3장
+]
+```
+
+`image_bytes`는 **저장 직후 JSON에서 빠집니다**(`report.strip_bytes`).
+바이트를 JSON에 넣을 수 없고, 넣더라도 사람이 읽을 수 없기 때문입니다.
+
+### [5] 최종 결과 — `brand_result.json`
+
+```python
+{
+    "generated_at": "2026-08-26T15:55:33",
+    "brief":   {...},      # [1]
+    "naming":  {...},      # [2]
+    "palette": {...},      # [3]
+    "logos":   [...],      # [4] — 이미지 바이트는 빠지고 프롬프트·출처만
+    "steps": [             # 단계별 실행 기록
+        {"step": "[1] 브리프", "status": "ok", "message": "", "problems": []},
+        # status: ok | missing | failed | skipped
+    ],
+}
+```
+
+**실패한 단계는 그 자리가 `None`** 입니다. 키 자체를 없애지 않는 이유는,
+받는 쪽이 "없는 것"과 "실패한 것"을 구분할 수 있어야 하기 때문입니다.
+
+---
+
+## 설계 근거
+
+### 왜 `dict`인가 — 클래스를 두지 않은 이유
+
+네 단계를 네 사람이 나눠 맡았습니다. 클래스를 공유하면 **한 사람이 필드를 바꿀 때마다
+나머지 셋이 함께 고쳐야** 합니다. `dict`와 문자열 키로 두면 각자 독립적으로 작업하고,
+형식이 맞는지는 `validate.py` 한 곳에서만 봅니다.
+
+그 대가로 오타를 미리 잡지 못합니다. 그래서 **검증 함수와 테스트 192개**로 막습니다.
+
+### 왜 검증이 예외를 안 던지는가
+
+`check_*`는 문제를 **문자열 목록으로** 돌려줍니다. 예외를 던지면 거기서 멈춰
+"몇 개가 잘못됐는지"를 한 번에 볼 수 없습니다.
+
+```python
+problems = validate.check_brief(brief)   # [] 면 통과
+```
+
+브리프 오류를 한 번에 모두 보여 주는 것도 같은 이유입니다 — 하나씩 알려 주면
+고치고 다시 돌리기를 반복해야 합니다.
+
+### 왜 폴백 체인인가
+
+명세 9번이 *"API 실패 시 다음 단계를 계속 진행"*을 요구합니다.
+LLM API는 쿼터·권한·안전필터로 자주 막힙니다. 한 곳이 막혔다고 전체가 멈추면
+**아무 산출물도 못 냅니다.**
+
+```
+코디세이 → OpenAI → Gemini → Pollinations → 예시 값
+```
+
+앞이 막히면 다음으로 넘어갑니다. 대신 **어느 쪽을 썼는지 반드시 기록**합니다
+(`used_example` → `run_report.md`). 안 그러면 받는 사람이 예시 값을 실제 생성 결과로
+착각합니다.
+
+### 왜 `openai` 패키지를 안 쓰는가
+
+HTTP 요청 한 번이면 되는 일입니다. 게다가 이 환경에서 그 패키지는 import조차
+실패했습니다 — `openai → httpx → httpcore → truststore → ctypes`를 타고 들어가는데
+파이썬 설치의 `_ctypes`가 깨져 있었습니다.
+
+`urllib.request`로 직접 부르면 의존성이 하나도 없고, 어느 환경에서든 돕니다.
+
+### 왜 프롬프트 구조를 LLM에게 안 맡기는가
+
+로고 프롬프트를 LLM이 다시 쓰게 했더니 **검증된 규칙이 전부 사라졌습니다.**
+
+```
+나간 것 : minimalist geometric icon representing tranquility... warm colors
+사라진 것: pure white background / no lettering / roasted coffee brown
+```
+
+지금은 `PROMPT_TEMPLATES`가 문장 구조를 쥐고, **LLM은 낱말 번역만** 합니다.
+
+### 왜 산출물을 저장소에 커밋하는가
+
+명세가 *"PNG 파일로 저장"*을 요구합니다. `.gitignore`가 `output/`을 통째로 막고 있어
+로고도 팔레트도 올라가지 않았습니다. 산출물(png·json·md·css)만 예외로 두었습니다.
+
+---
+
+## 엣지 케이스 정책
+
+동작이 갈릴 수 있는 곳에서 **무엇을 택했는지** 밝힙니다.
+
+| 상황 | 어떻게 하는가 | 왜 |
+| --- | --- | --- |
+| 필수 필드가 여러 개 빠짐 | **한 번에 모두** 알려 준다 | 하나씩 알려 주면 고치고 다시 돌리기를 반복해야 함 |
+| JSON 문법 오류 | **몇 번째 줄**인지 알려 준다 | 줄 번호가 없으면 찾을 수 없음 |
+| 선택 필드가 없음 | 기본값을 채워 다음 단계로 | 뒤 단계가 키 존재를 매번 확인하지 않게 |
+| 대화형에서 잘못된 경로 | **다시 묻는다** | 사람이 보고 있으므로 고칠 수 있음 |
+| 인자(`--brief`)가 잘못됨 | **종료 코드 2로 멈춘다** | 자동화 중에는 되물어도 답할 사람이 없음 |
+| 앞 단계 실패 | 뒤 단계에 `None`을 넘기고 계속 | 명세 9번 |
+| 네이밍이 3개 미만 | 예시 값으로 대체 | 이름 하나로 뒤 단계를 돌릴 수 없음 |
+| 스토리가 280자 미만 | **최대 2회 다시 청한다** | 명세는 300자 내외. 못 늘리면 가장 긴 것을 씀 |
+| 스토리가 빈 문자열 | 브리프로 **새로 써 달라**고 청한다 | 늘릴 원문이 없으므로 |
+| 이름에 업종어(`○○카페`) | 잡아서 리포트에 적는다 | **버리지 않음** — 채택은 사람 판단 |
+| 후보 유형이 겹침 | 위와 같음 | 후보가 서로 닮으면 고를 여지가 없음 |
+| `reading`이 `english`와 같음 | 위와 같음 | 읽는 법을 알려 주지 못함 |
+| 후보 글자 수가 모두 같음 | **잡지 않는다** | 한글 브랜드명은 2~3글자가 자연스러움 |
+| hex가 소문자거나 `#` 누락 | 고쳐서 쓴다 | 자주 나는 형식 오류 |
+| hex가 `rgb(...)`나 3자리 | 버린다 | 명도 대비를 계산할 수 없음 |
+| 서브 컬러가 4개 이상 | **앞 3개만** 쓴다 | 계약이 2~3개 |
+| 메인이 흰 배경에 묻힘 | 1회 다시 청한다 | 로고를 이 색으로 그림 |
+| 다시 받은 것도 밝음 | 원래 것을 쓰고 경고만 남긴다 | 색은 사람이 판단할 문제 |
+| 이미지가 JPEG로 옴 | Pillow로 변환. 없으면 **그 시안을 건너뛴다** | 확장자만 바꾸면 깨진 파일 |
+| 모든 이미지 API 실패 | 1×1 투명 PNG + **규격 위반으로 기록** | 파일은 있으나 내용이 없음을 알려야 함 |
+| 한 파일 저장 실패 | 나머지는 저장한다 | 하나 때문에 전부 잃지 않게 |
+| 저장을 한 건도 못 함 | 종료 코드 1 | 조용히 성공한 척하지 않음 |
+
+---
+
+## 알려진 한계
+
+정직하게 적습니다.
+
+### 1. 로고 색이 팔레트와 정확히 같지는 않습니다
+
+이미지 생성 API는 hex 코드를 정밀하게 지키지 못합니다. 프롬프트에 색 **이름**
+(`roasted coffee brown`)을 넣으므로 계열은 맞지만 값은 어긋납니다.
+정확한 색이 필요하면 벡터 편집기에서 직접 맞춰야 합니다.
+
+### 2. 로고 시안은 최대 3장입니다
+
+프롬프트 템플릿이 3개입니다. 4장 이상을 요청해도 `min(count, len(PROMPT_TEMPLATES))`로
+잘려 조용히 모자라게 나옵니다. 지금은 `--logos`가 2~3으로 제한돼 드러나지 않습니다.
+
+### 3. 네이밍 유형은 LLM의 자기 분류입니다
+
+`type`은 모델이 스스로 붙인 번호입니다. `테라스`를 "지명·역사형"으로 분류한 적이
+있는데 정확하다고 보기 어렵습니다. **유형 번호는 쏠림을 감지하는 용도**이지
+분류의 정확성을 보장하지 않습니다.
+
+### 4. 규격 위반을 걸러 내지 않습니다
+
+업종어·유형 쏠림·읽는 법 베끼기는 **기록만 하고 버리지 않습니다.**
+`run_report.md`를 읽지 않으면 그대로 쓰게 됩니다. 의도한 설계이지만
+자동으로 걸러 주기를 기대했다면 어긋납니다.
+
+### 5. 한국어 브리프만 검증했습니다
+
+프롬프트가 한국어로 되어 있습니다. 영어 브리프를 넣어도 돌아가지만 결과 품질은
+확인하지 않았습니다.
+
+### 6. Python 3.10 미만은 검증하지 않았습니다
+
+명세가 3.10 이상을 요구하므로 그 아래는 시험하지 않았습니다.
+`match` 같은 3.10 전용 문법은 쓰지 않으며, 모든 파일이
+`from __future__ import annotations`로 시작합니다.
+
+### 7. 로고 생성이 느립니다
+
+3장에 2~4분 걸립니다. 이미지 생성 API가 본래 느리고, 순서대로 부르기 때문입니다.
+동시에 부르면 빨라지지만 실패 처리가 복잡해져 택하지 않았습니다.
 
 ---
 
