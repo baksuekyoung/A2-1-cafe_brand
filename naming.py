@@ -445,8 +445,7 @@ def generate_naming(brief: dict) -> dict:
     provider, api_key, call = _pick_provider()
     if not api_key:
         print("   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다"
-              " (.env 에 CODYSSEY_OPENAI_KEY · OPENAI_API_KEY ·"
-              " GEMINI_API_KEY 중 하나)")
+              " (.env 에 CODYSSEY_OPENAI_KEY — .env.example 참고)")
         return dict(EXAMPLE, used_example=True)
 
     try:

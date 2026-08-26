@@ -43,25 +43,27 @@ pip install -r requirements.txt
 
 ### 2. API 키 등록
 
-`.env.example`을 `.env`로 복사하고 **아래 중 하나**를 채웁니다.
+`.env.example`을 `.env`로 복사하고 키를 채웁니다.
 
 ```
-CODYSSEY_OPENAI_KEY=코디세이_공개_API_키    ← 권장
-OPENAI_API_KEY=본인의_API_키
-GEMINI_API_KEY=본인의_API_키
+CODYSSEY_OPENAI_KEY=코디세이_공개_API_키
+CODYSSEY_BASE_URL=https://copa.codyssey.kr
 ```
 
-**코디세이 공개 API를 먼저 씁니다.** 소속 기관 키로 정산되어 개인 결제분을 쓰지 않고,
-텍스트와 이미지를 한 키로 처리합니다. 콘솔에서 **OpenAI 호환** 키를 발급받으세요
-(`Anthropic` 호환 키는 채팅에서 거부됩니다).
+**코디세이 공개 API를 씁니다.** 소속 기관 키로 정산되어 개인 결제분을 쓰지 않고,
+텍스트와 이미지를 이 키 하나로 처리합니다.
+
+발급은 [API 콘솔](https://usr.codyssey.kr/daejeon/public-api-console) →
+`MY` > `API 키 관리` > `키 발급` 입니다. 호환 방식은 반드시 **OpenAI** 로 고르세요
+(`Anthropic` 호환 키는 채팅에서 HTTP 403 이 납니다).
 
 ```bash
 python test_api.py              # 연결 확인 (채팅만 — 한도를 쓰지 않음)
 python test_api.py --image      # 이미지 생성까지 확인 (호출 1회 차감)
 ```
 
-공급자는 **코디세이 → OpenAI → Gemini → Pollinations** 순으로 시도합니다.
-앞이 막히면 다음으로 넘어가므로 어느 하나만 있어도 됩니다.
+코디세이가 막히면 **Pollinations**(키 불필요)로 이어져 로고는 계속 생성됩니다.
+명세 9번(*"API 실패 시 다음 단계를 계속 진행"*)을 위한 폴백입니다.
 
 > 키가 없으면 [2]·[3]이 예시 값으로 채워집니다. 파이프라인 확인용 폴백이므로
 > **실제 AI 생성 결과를 얻으려면 키가 필요합니다.** 예시 값을 쓴 자리는 `run_report.md`에 기록됩니다.

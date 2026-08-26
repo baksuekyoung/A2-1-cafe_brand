@@ -160,8 +160,6 @@ tools/
 $ cat .env.example
 CODYSSEY_OPENAI_KEY=
 CODYSSEY_BASE_URL=https://copa.codyssey.kr
-OPENAI_API_KEY=
-GEMINI_API_KEY=
 ```
 
 키가 저장소에 없는지 확인한 기록은 [`execution-log.md`](execution-log.md) 6절에 있습니다.

@@ -214,8 +214,8 @@ $ python main.py
 브리프 JSON 경로를 입력하세요: samples/brief.json
 출력 폴더 경로를 입력하세요 (엔터 시 ./output):
 
-   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다 (.env 에 CODYSSEY_OPENAI_KEY · OPENAI_API_KEY · GEMINI_API_KEY 중 하나)
-   ℹ️  [3] API 키가 없어 예시 값으로 돌립니다 (.env 에 CODYSSEY_OPENAI_KEY · OPENAI_API_KEY · GEMINI_API_KEY 중 하나)
+   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다 (.env 에 CODYSSEY_OPENAI_KEY — .env.example 참고)
+   ℹ️  [3] API 키가 없어 예시 값으로 돌립니다 (.env 에 CODYSSEY_OPENAI_KEY — .env.example 참고)
    🖼️  [4] 로고 시안 1장 생성 (pollinations)
    🖼️  [4] 로고 시안 1장 생성 (pollinations)
   ✅ [1] 브리프
@@ -332,8 +332,6 @@ $ git log -p | grep -icE "sk-proj-[A-Za-z0-9]{20}|sk-cody-live-[A-Za-z0-9]{10}"
 $ cat .env.example
 CODYSSEY_OPENAI_KEY=
 CODYSSEY_BASE_URL=https://copa.codyssey.kr
-OPENAI_API_KEY=
-GEMINI_API_KEY=
 ```
 
 키 **이름만** 있고 값은 비어 있습니다.

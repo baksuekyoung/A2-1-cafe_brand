@@ -193,8 +193,7 @@ def main(argv: list[str] | None = None) -> int:
     if not 있는키:
         print("❌ API 키가 없습니다.")
         print("   .env.example 을 .env 로 복사한 뒤")
-        print("   CODYSSEY_OPENAI_KEY · OPENAI_API_KEY · GEMINI_API_KEY 중"
-              " 하나를 채워 주십시오.")
+        print("   CODYSSEY_OPENAI_KEY 를 채워 주십시오.")
         print()
         print("   키가 없어도 python main.py 는 예시 값으로 돌아갑니다.")
         return 1
