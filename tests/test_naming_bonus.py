@@ -180,7 +180,7 @@ ANSWER = {
         {"name": "모닥", "english": "Modak", "reading": "MO-dak", "meaning": "작은 불빛"},
     ],
     "slogans": ["가", "나", "다"],
-    "story": "이" * 250,
+    "story": "이" * 300,
     "competitors": [{"competitor": "블루보틀", "position": "스페셜티",
                      "differentiation": "머무는 시간"}],
 }
@@ -219,7 +219,7 @@ def test_공급자를_고르는_순서는_openai_먼저(monkeypatch):
     assert 이름 == "OpenAI" and 호출 is step2_naming._call_openai
 
 
-def test_스토리가_짧으면_한_번만_다시_청한다(monkeypatch):
+def test_스토리가_짧으면_다시_청한다(monkeypatch):
     """실측 178·193·194자 — 프롬프트만으로는 못 막아서 넣은 안전장치다."""
     짧은 = dict(ANSWER, story="이" * 150)
     호출 = []
@@ -228,20 +228,20 @@ def test_스토리가_짧으면_한_번만_다시_청한다(monkeypatch):
         호출.append(prompt)
         if len(호출) == 1:
             return 짧은
-        return {"story": "구" * 250}
+        return {"story": "구" * 300}
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
     monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
     monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
 
     result = step2_naming.generate_naming(BRIEF)
-    assert len(호출) == 2                      # 전체 1번 + 스토리 1번, 그 이상은 없다
-    assert len(result["story"]) == 250
+    assert len(호출) == 2                      # 목표치를 채웠으므로 더 청하지 않는다
+    assert len(result["story"]) == 300
     assert "원래 스토리" in 호출[1]            # 다시 청할 때 원문을 함께 준다
 
 
 def test_다시_청한_것도_짧으면_원래_것을_쓴다(monkeypatch):
-    """두 번째까지 짧으면 받아들인다 — 규격 미달은 리포트에 남아 사람이 본다."""
+    """끝까지 못 늘리면 받아들인다 — 규격 미달은 리포트에 남아 사람이 본다."""
     짧은 = dict(ANSWER, story="이" * 150)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
     monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
@@ -249,6 +249,29 @@ def test_다시_청한_것도_짧으면_원래_것을_쓴다(monkeypatch):
                         lambda *a, **k: 짧은 if len(a[0]) > 500 else {"story": "구" * 100})
     result = step2_naming.generate_naming(BRIEF)
     assert result["story"] == "이" * 150
+
+
+def test_다시_청하는_횟수에_상한이_있다(monkeypatch):
+    """끝없이 다시 청하면 토큰을 다 쓴다. 상한을 넘기지 않는다."""
+    짧은 = dict(ANSWER, story="이" * 150)
+    호출 = []
+
+    def 가짜호출(prompt, _key):
+        호출.append(prompt)
+        return 짧은 if len(호출) == 1 else {"story": "구" * 160}
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+
+    step2_naming.generate_naming(BRIEF)
+    assert len(호출) == 1 + step2_naming.STORY_RETRIES
+
+
+def test_명세가_요구하는_300자에_맞춰_다시_청한다():
+    """계약 최소치(200자)가 아니라 명세의 '300자 내외'를 기준으로 삼는다."""
+    assert step2_naming.STORY_TARGET_CHARS > step2_naming.MIN_STORY_CHARS
+    assert 260 <= step2_naming.STORY_TARGET_CHARS <= 300
 
 
 def test_다시_청하다_실패해도_죽지_않는다(monkeypatch):

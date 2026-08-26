@@ -124,6 +124,23 @@ python main.py
 후보마다 한글 이름과 영문 표기를 함께 만들고, `쉼표 (Comma, COM-ma)` 형태로 표기합니다.
 영문 표기는 간판·도메인·SNS 계정에 그대로 쓸 수 있도록 알파벳 12자 안쪽으로 짓습니다.
 
+### 실제 생성 결과
+
+`output/` 폴더에 실행 결과를 그대로 담아 두었습니다.
+
+**컬러 팔레트** — `output/color_palette.png`
+
+![컬러 팔레트](output/color_palette.png)
+
+**로고 시안** — `output/logo_01.png` · `output/logo_02.png`
+
+| 시안 1 | 시안 2 |
+| --- | --- |
+| <img src="output/logo_01.png" width="320"> | <img src="output/logo_02.png" width="320"> |
+
+텍스트 결과 전체는 [`output/brand_result.md`](output/brand_result.md) 와
+[`output/brand_result.json`](output/brand_result.json) 에 있습니다.
+
 ---
 
 ## 구조

@@ -2,5 +2,11 @@
 .venv/
 venv/
 __pycache__/
-output/
 *.pyc
+
+# 산출물은 명세가 제출을 요구하므로 커밋한다
+output/*
+!output/*.png
+!output/*.json
+!output/*.md
+!output/*.css

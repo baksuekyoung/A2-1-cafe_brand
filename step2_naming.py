@@ -156,6 +156,11 @@ RESPONSE_SHAPE = (
 # 계약(docs/데이터-계약.md)이 정한 스토리 최소 길이. validate.py 와 같은 값이다.
 MIN_STORY_CHARS = 200
 
+# 명세는 "300자 내외"를 요구한다. 계약 최소치(200)만 넘으면 통과시키면
+# 실측 204자 같은 결과가 그대로 나가므로, 다시 청하는 기준은 따로 둔다.
+STORY_TARGET_CHARS = 280
+STORY_RETRIES = 2
+
 # 무료·저가 티어에서 막히는 모델이 있어 앞에서부터 시도하고 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-4o-mini", "gpt-4o")
 GEMINI_MODELS = ("gemini-flash-lite-latest", "gemini-flash-latest", "gemini-2.5-flash")
@@ -372,29 +377,34 @@ def generate_naming(brief: dict) -> dict:
     # 실측 178·193·194자로 왔다. 그럴 때 스토리만 한 번 다시 청한다.
     # 전체를 다시 돌리는 것보다 훨씬 싸고, 두 번째도 짧으면 그냥 받아들인다
     # (규격 미달은 run_report.md 에 기록되므로 사람이 보고 판단한다).
-    if len(result["story"]) < MIN_STORY_CHARS:
+    if len(result["story"]) < STORY_TARGET_CHARS:
         result["story"] = _retry_story(result["story"], brief, api_key, call)
     return result
 
 
 def _retry_story(short_story: str, brief: dict, api_key: str, call) -> str:
-    """짧게 온 스토리를 한 번만 다시 청한다. 실패하면 원래 것을 돌려준다."""
-    ask = (
-        f"아래 브랜드 스토리는 {len(short_story)}자로 너무 짧습니다.\n"
-        "내용과 어조는 유지한 채 **280자에서 320자 사이**로 늘려 다시 쓰세요.\n"
-        "탄생 배경 → 철학 → 비전 세 가지가 모두 담겨야 합니다.\n\n"
-        f"업종: {brief.get('industry', '')} / 타깃: {brief.get('target', '')}\n\n"
-        f"원래 스토리:\n{short_story}\n\n"
-        '{"story": "다시 쓴 스토리"} 형식의 JSON 으로만 답하세요.'
-    )
-    try:
-        longer = str(call(ask, api_key).get("story") or "").strip()
-    except Exception:
-        return short_story
-    if len(longer) >= MIN_STORY_CHARS:
-        print(f"   🔁 [2] 스토리를 다시 청했습니다 ({len(short_story)} → {len(longer)}자)")
-        return longer
-    return short_story
+    """짧게 온 스토리를 다시 청한다. 끝내 못 늘리면 가장 긴 것을 돌려준다."""
+    best = short_story
+    for _ in range(STORY_RETRIES):
+        ask = (
+            f"아래 브랜드 스토리는 {len(best)}자로 너무 짧습니다.\n"
+            "내용과 어조는 유지한 채 **280자에서 320자 사이**로 늘려 다시 쓰세요.\n"
+            "탄생 배경, 철학, 비전 세 가지가 모두 담겨야 합니다.\n"
+            "쓴 뒤 공백까지 세어 보고 280자에 못 미치면 더 채우세요.\n\n"
+            f"업종: {brief.get('industry', '')} / 타깃: {brief.get('target', '')}\n\n"
+            f"원래 스토리:\n{best}\n\n"
+            '{"story": "다시 쓴 스토리"} 형식의 JSON 으로만 답하세요.'
+        )
+        try:
+            longer = str(call(ask, api_key).get("story") or "").strip()
+        except Exception:
+            break
+        if len(longer) > len(best):
+            print(f"   🔁 [2] 스토리를 다시 청했습니다 ({len(best)} -> {len(longer)}자)")
+            best = longer
+        if len(best) >= STORY_TARGET_CHARS:
+            break
+    return best
 
 
 if __name__ == "__main__":

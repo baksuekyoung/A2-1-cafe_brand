@@ -1,0 +1,114 @@
+{
+  "generated_at": "2026-08-26T09:33:30",
+  "brief": {
+    "industry": "카페",
+    "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",
+    "keywords": [
+      "여유",
+      "따뜻함",
+      "일상의 쉼표",
+      "감성"
+    ],
+    "tone": "따뜻하고 감성적이며 과하지 않게 세련된 분위기",
+    "competitors": [
+      "블루보틀",
+      "스타벅스"
+    ],
+    "notes": "한글과 영어로 모두 활용하기 쉬운 브랜드명을 원함"
+  },
+  "naming": {
+    "naming": [
+      {
+        "name": "여유다방",
+        "english": "YeyuDabang",
+        "reading": "yeh-yoo-DAH-bang",
+        "meaning": "일상의 여유로움을 담은 다방이라는 뜻으로, 소소한 쉼을 제공하고자 합니다."
+      },
+      {
+        "name": "커피쉼표",
+        "english": "CoffeeComma",
+        "reading": "KAH-fee-KOM-ma",
+        "meaning": "커피와 쉼을 결합한 이름으로, 일상 속 잠시 멈춤을 상징합니다."
+      },
+      {
+        "name": "온기카페",
+        "english": "OngiCafe",
+        "reading": "ON-gee-KAH-fay",
+        "meaning": "따뜻한 감성을 지닌 카페를 의미하며, 사람들 간의 온정과 여유를 전합니다."
+      }
+    ],
+    "slogans": [
+      "바쁜 일상 속 잠시 멈춤",
+      "따뜻한 여유를 느껴보세요",
+      "여유다방에서 쉼을 찾아요"
+    ],
+    "story": "어느 날, 바쁜 일상 속에서 지친 20대 직장인들이 뜻밖의 쉼을 찾고자 모였습니다. 우리는 이들을 위해 '여유다방'을 탄생시켰습니다. 일상의 여유와 따뜻함을 제공하며, 친구들과 특별한 순간을 나누는 공간이 되길 원합니다. 이곳에서 감성적인 커피 한 잔을 즐기며, 소소한 행복을 찾길 바랍니다. 앞으로 우리는 여유로운 순간을 공유하는 특별한 장소로 자리잡고자 합니다.",
+    "competitors": [
+      {
+        "competitor": "블루보틀",
+        "position": "프리미엄 커피 시장의 대표 브랜드",
+        "differentiation": "여유다방은 친구와의 교감을 중시하며, 모임의 장소로서의 따뜻함을 더욱 강화합니다."
+      },
+      {
+        "competitor": "스타벅스",
+        "position": "커피 전문점의 글로벌 선두주자",
+        "differentiation": "우리는 감성과 여유를 통해 소소한 일상의 쉼을 선사하며, 따뜻한 커뮤니티를 형성하는 데 집중합니다."
+      }
+    ]
+  },
+  "palette": {
+    "main": {
+      "hex": "#3E3028",
+      "name": "로스팅 브라운",
+      "reason": "원두를 볶은 색에서 가져왔습니다"
+    },
+    "subs": [
+      {
+        "hex": "#F5F0E8",
+        "name": "크림",
+        "reason": "여백을 만들고 글자를 읽기 쉽게 합니다"
+      },
+      {
+        "hex": "#7C9070",
+        "name": "세이지",
+        "reason": "차분함을 더하는 포인트 색입니다"
+      }
+    ]
+  },
+  "logos": [
+    {
+      "prompt": "minimalist geometric icon, single abstract symbol suggesting leisure, solid roasted coffee brown shape on pure white background, flat vector, no lettering, no words, no signature, no watermark, centered, lots of white space",
+      "source": "openai"
+    },
+    {
+      "prompt": "simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid roasted coffee brown on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space",
+      "source": "openai"
+    }
+  ],
+  "steps": [
+    {
+      "step": "[1] 브리프",
+      "status": "ok",
+      "message": "",
+      "problems": []
+    },
+    {
+      "step": "[2] 네이밍·슬로건·스토리",
+      "status": "ok",
+      "message": "",
+      "problems": []
+    },
+    {
+      "step": "[3] 컬러 팔레트",
+      "status": "ok",
+      "message": "",
+      "problems": []
+    },
+    {
+      "step": "[4] 로고 시안",
+      "status": "ok",
+      "message": "",
+      "problems": []
+    }
+  ]
+}
