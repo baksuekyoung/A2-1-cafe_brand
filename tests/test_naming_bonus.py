@@ -430,3 +430,73 @@ def test_스토리가_있으면_그것을_늘려_달라고_청한다(monkeypatch
     naming.generate_naming(BRIEF)
     assert "원래 스토리" in 호출[1]
     assert "150자로 너무 짧습니다" in 호출[1]
+
+
+# --- 후보가 개성 있는가 -----------------------------------------------------
+#
+# 실측으로 '여유카페 · 온기카페 · 쉼표다방 · 감성커피' 가 나왔다.
+# 브리프 키워드에 업종어를 붙인 형태다. 버리지는 않고 리포트에 적는다.
+
+def _후보(*names):
+    return {"naming": [{"name": n, "english": "X", "meaning": "뜻"} for n in names],
+            "slogans": ["가", "나", "다"], "story": "이" * 300}
+
+
+def test_업종어를_붙인_이름을_잡아낸다():
+    문제 = validate.check_naming(_후보("여유카페", "온기", "쉼표", "모닥"))
+    assert any("여유카페" in p and "업종" in p for p in 문제)
+
+
+def test_영문_업종어도_잡아낸다():
+    문제 = validate.check_naming(_후보("Ongi Coffee", "쉼표", "모닥", "한뼘"))
+    assert any("Ongi Coffee" in p for p in 문제)
+
+
+def test_업종어가_없으면_통과한다():
+    문제 = validate.check_naming(_후보("온기", "쉼표", "모닥", "노을목"))
+    assert not any("업종" in p for p in 문제)
+
+
+def test_유형이_겹치면_쏠림으로_잡는다():
+    """네 개가 모두 같은 유형이면 후보가 하나인 셈이다."""
+    데이터 = _후보("온기", "쉼표", "모닥", "한뼘")
+    for item, 유형 in zip(데이터["naming"], ("3", "3", "3", "3")):
+        item["type"] = 유형
+    assert any("쏠렸습니다" in p for p in validate.check_naming(데이터))
+
+
+def test_유형이_다_다르면_통과한다():
+    데이터 = _후보("온기", "쉼표", "모닥", "한뼘")
+    for item, 유형 in zip(데이터["naming"], ("1", "2", "3", "4")):
+        item["type"] = 유형
+    assert not any("쏠렸습니다" in p for p in validate.check_naming(데이터))
+
+
+def test_유형을_안_적어도_규격_위반은_아니다():
+    """type 은 개성을 보려고 받는 것이지 계약 필수 항목이 아니다."""
+    assert not any("쏠렸습니다" in p for p in validate.check_naming(_후보("온기", "쉼표", "모닥")))
+
+
+def test_예시_값은_업종어를_쓰지_않는다():
+    """호출이 실패해 예시로 떨어져도 평범한 이름이 나가면 안 된다."""
+    assert not any("업종" in p for p in validate.check_naming(naming.EXAMPLE))
+
+
+def test_프롬프트가_업종어와_키워드_복붙을_막는다():
+    prompt = naming.build_prompt(BRIEF)
+    assert "여유카페" in prompt              # 피해야 할 예를 직접 보여 준다
+    assert "업종 이름을 뒤에 붙이지 마세요" in prompt
+    assert "그대로 이름으로 쓰지 마세요" in prompt
+    assert "type" in prompt                  # 유형 번호를 받아야 쏠림을 본다
+
+
+def test_유형_번호를_받아_둔다(monkeypatch):
+    답 = dict(ANSWER)
+    답["naming"] = [dict(c, type=str(i + 1)) for i, c in enumerate(ANSWER["naming"])]
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", lambda *a, **k: 답)
+
+    후보 = naming.generate_naming(BRIEF)["naming"]
+    assert [c["type"] for c in 후보] == ["1", "2", "3"]

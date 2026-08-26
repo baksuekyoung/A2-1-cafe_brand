@@ -96,6 +96,7 @@ def check_naming(naming: object) -> list[str]:
                 problems.append(
                     f"[2] naming.naming[{index}]: english 에 영문이 아닌 글자가 있습니다"
                 )
+        problems += _check_distinctiveness(names)
     elif "naming" in naming:
         problems.append("[2] naming: naming 이 list 가 아닙니다")
 
@@ -146,6 +147,46 @@ def _check_color(color: object, where: str) -> list[str]:
             f"{where}: hex 가 '{hex_value}' 입니다 — '#RRGGBB' 대문자 6자리로 주세요"
         )
 
+    return problems
+
+
+# 이름에 붙으면 평범해지는 낱말. '여유카페' · '감성커피' 가 실제로 나왔다.
+업종어 = ("카페", "커피", "다방", "하우스", "스튜디오", "로스터",
+          "cafe", "coffee", "house", "studio", "roaster")
+
+
+def _check_distinctiveness(names: list) -> list[str]:
+    """후보가 서로 닮았거나 평범한지 본다.
+
+    버리지 않는다 — 채택은 사람이 판단할 문제다. `run_report.md` 에 적어
+    "이 후보들은 다시 뽑는 게 낫다" 를 눈에 보이게 하는 것이 목적이다.
+    """
+    problems: list[str] = []
+    항목 = [item for item in names if isinstance(item, dict)]
+    후보 = [str(item.get("name") or "").strip() for item in 항목]
+    후보 = [name for name in 후보 if name]
+    if not 후보:
+        return problems
+
+    for name in 후보:
+        낮춘것 = name.lower()
+        걸린것 = [낱말 for 낱말 in 업종어 if 낱말 in 낮춘것]
+        if 걸린것:
+            problems.append(
+                f"[2] naming: '{name}' 은 업종 이름('{걸린것[0]}')을 붙인 형태입니다"
+                " — 간판이 업종을 말해 줍니다"
+            )
+
+    유형 = [str(item.get("type") or "").strip() for item in 항목]
+    적힌유형 = [값 for 값 in 유형 if 값]
+    if len(적힌유형) >= 2 and len(set(적힌유형)) < len(적힌유형):
+        problems.append(
+            "[2] naming: 후보들이 같은 유형으로 쏠렸습니다"
+            f" (type={', '.join(적힌유형)}) — 서로 다른 유형으로 지어야 고를 여지가 생깁니다"
+        )
+
+    # 글자 수가 모두 같은 것은 걸러 내지 않는다. 한글 브랜드명은 2~3글자가
+    # 자연스러워서, 그것만으로는 평범하다고 말할 수 없다.
     return problems
 
 
