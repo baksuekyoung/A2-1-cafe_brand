@@ -39,7 +39,10 @@ import urllib.request
 # 바이트까지 같은 이미지가 나왔다). 결과를 바꾸는 것은 프롬프트 쪽이다.
 STYLE = "minimalist geometric icon"  # 문서·테스트에서 가리키는 대표 낱말
 
-LOGO_COUNT = 2  # 명세는 2~3장을 요구한다
+# 명세는 2~3장을 요구한다. 기본은 2장이고, 환경변수 LOGO_COUNT 나
+# `python main.py --logos 3` 으로 3장까지 올릴 수 있다.
+LOGO_COUNT = 2
+MAX_LOGO_COUNT = 3
 
 PROMPT_TEMPLATES = (
     "minimalist geometric icon, single abstract symbol suggesting {theme}, "
@@ -49,6 +52,11 @@ PROMPT_TEMPLATES = (
     "simple pictogram, one abstract mark suggesting {theme}, thick even strokes, "
     "solid {color} on pure white background, flat design, "
     "wordless, textless, no typography, no letters, no numbers, centered, negative space",
+
+    "clean line-art emblem, a single continuous outline suggesting {theme}, "
+    "even stroke weight, {color} lines on pure white background, flat vector, "
+    "no fill, no shading, no text, no lettering, no characters, no caption, "
+    "centered with wide margins",
 )
 
 # ChatGPT·Copilot 같은 **대화형** 도구에 넣을 때 쓰는 문장.
@@ -63,6 +71,8 @@ PROMPT_TEMPLATES = (
 HUMAN_CONCEPTS = (
     "a minimalist abstract symbol that suggests {theme}",
     "a single clean geometric icon that suggests {theme}, drawn in thin even lines",
+    "an emblem made of one continuous outline that suggests {theme}, "
+    "drawn with even stroke weight and no fill",
 )
 
 HUMAN_TEMPLATE = (

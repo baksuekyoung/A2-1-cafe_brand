@@ -23,6 +23,12 @@ Draw a minimalist abstract symbol that suggests calm and unhurried ease. Flat ve
 Draw a single clean geometric icon that suggests warmth, drawn in thin even lines. Flat vector illustration style, centered in the frame with generous empty space around it. Use warm neutral tones as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
 ```
 
+### 시안 3
+
+```text
+Draw an emblem made of one continuous outline that suggests a pause in everyday life, drawn with even stroke weight and no fill. Flat vector illustration style, centered in the frame with generous empty space around it. Use warm neutral tones as the only color, on a pure white background. Simple enough to recognize at a small size. Do not include any letters, words, numbers, signature, or watermark anywhere in the image. The mark must be completely wordless.
+```
+
 마음에 드는 그림이 나오면 `logo_01.png` · `logo_02.png` 로 저장해
 이 폴더에 넣으십시오. 결과 문서에 그대로 실립니다.
 
@@ -47,4 +53,12 @@ minimalist geometric icon, single abstract symbol suggesting leisure, solid warm
 
 ```text
 simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid warm neutral tones on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space
+```
+
+### 시안 3
+
+생성: OpenAI 이미지 API
+
+```text
+clean line-art emblem, a single continuous outline suggesting break in routine, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins
 ```

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T10:28:08",
+  "generated_at": "2026-08-26T11:51:12",
   "brief": {
     "industry": "카페",
     "target": "20~30대 직장인, 일상 속 여유를 찾는 사람",
@@ -19,59 +19,59 @@
   "naming": {
     "naming": [
       {
-        "name": "여유로운",
-        "english": "YeoYuRoUn",
-        "reading": "Yeo-Yu-Ro-Un",
-        "meaning": "‘일상 속 여유’를 의미하며, 소비자들에게 따뜻한 힐링 경험을 제공하는 카페입니다."
+        "name": "쉼터",
+        "english": "Sheemter",
+        "reading": "SHEEM-ter",
+        "meaning": "일상 속에서 여유와 쉼을 찾을 수 있는 공간이란 뜻입니다."
       },
       {
-        "name": "담다",
-        "english": "Damda",
-        "reading": "Dam-da",
-        "meaning": "‘함께 담다’의 의미를 담아, 소중한 일상을 공유하고 나누는 공간을 지향합니다."
+        "name": "온기",
+        "english": "Ongi",
+        "reading": "ON-gee",
+        "meaning": "따뜻함과 정서적 안식을 제공하는 카페를 의미합니다."
       },
       {
-        "name": "아침의 쉼",
-        "english": "MorningRest",
-        "reading": "Morning-Rest",
-        "meaning": "‘하루의 시작에서 느끼는 안전한 쉼’으로, 바쁜 아침을 잠시 멈추고 여유를 찾는 카페입니다."
+        "name": "카페따기",
+        "english": "Cafedda",
+        "reading": "CA-feh-da",
+        "meaning": "'따뜻한 커피 한 모금'의 의미를 담은 이름입니다."
       }
     ],
     "slogans": [
-      "일상이 바쁜 당신을 위해",
-      "따뜻한 감성을 담아",
-      "여유로운, 쉼을 찾다"
+      "귀찮은 일상에 쉼표를",
+      "따뜻한 감성을 담았습니다",
+      "쉼터에서 여유를 만나다"
     ],
-    "story": "‘여유로운’은 바쁜 일상 속에서 스트레스를 느끼는 20~30대 직장인들의 고충을 경청하며 탄생했습니다. 하루의 비루함이 억압한 마음을 해방하고, 잠시나마 삶의 여유를 찾을 수 있는 따뜻한 공간을 제공하고자 하는 우리의 철학은 모든 이들에게 안전하고 안락한 휴식처를 제공하는 것에 그 뿌리를 두고 있습니다. 앞으로 ‘여유로운’은 단순한 카페의 경계를 넘어, 각자가 숨겨진 진정한 자신을 재발견하고 소중한 추억과 시간을 나눌 수 있는 특별한 공간이 되기를 소망합니다. 당신의 여유를 찾고, 다시 일상으로 돌아갈 힘을 충전하세요.",
+    "story": "혼잡한 도시에서 20~30대 직장인들은 일상 속에서 자주 불안함과 바쁨에 갇혀, 진정한 여유를 잃어버리곤 합니다. 이러한 환경에서 우리는 그들에게 필요한 쉼터를 만들기로 결심했습니다. 우리의 철학은 고객에게 따뜻함과 감성을 전달하며 소중한 일상의 순간들을 제공하려는 것입니다. 우리는 일상 속에서도 가벼운 마음과 여유를 느낄 수 있는 공간을 지향합니다. 앞으로도 우리는 바쁜 현대인들에게 최적의 여유 공간이 되고, 쉼의 가치를 강조하여 더 많은 사람들에게 편안한 탈출구가 될 수 있도록 끊임없이 노력할 것입니다.",
     "competitors": [
       {
-        "competitor": "블루보틀",
-        "position": "스페셜티 커피 시장의 선두주자",
-        "differentiation": "여유로운은 바쁜 일상 속 휴식을 중시하며, 소비자에게 따뜻한 감성을 더한 공간적 경험을 제공합니다."
+        "competitor": "스타벅스",
+        "position": "프리미엄 커피 시장의 선두주자",
+        "differentiation": "스타벅스의 고급감 대신, 감성을 강조하는 따뜻한 분위기의 공간을 제공합니다."
       },
       {
-        "competitor": "스타벅스",
-        "position": "커피 프랜차이즈의 대명사",
-        "differentiation": "여유로운은 세련되면서도 감성적으로 접근하여, 개인의 정서적 쉼을 중시하는 차별화된 브랜드 경험을 추구합니다."
+        "competitor": "블루보틀",
+        "position": "스페셜티 커피의 대명사",
+        "differentiation": "블루보틀의 과도한 세련됨 대신, 누구나 편안하게 느낄 수 있는 따뜻한 감성을 유지합니다."
       }
     ]
   },
   "palette": {
     "main": {
-      "hex": "#A65E2E",
-      "name": "카라멜 브라운",
-      "reason": "따뜻하고 포근한 느낌을 주어 일상 속 여유를 느끼게 해주는 메인 컬러입니다."
+      "hex": "#A25B30",
+      "name": "테라코타 브라운",
+      "reason": "따뜻하고 감성적인 느낌을 주며, 일상 속 편안함과 여유를 표현합니다."
     },
     "subs": [
       {
-        "hex": "#F4E1C1",
-        "name": "크림 베이지",
-        "reason": "부드럽고 밝은 톤으로 배경에 사용하여 편안함을 느낄 수 있는 여백을 제공합니다."
+        "hex": "#F5E6D2",
+        "name": "부드러운 베이지",
+        "reason": "밝고 세련된 느낌을 주어 여백을 강조하고, 글자가 잘 읽히도록 도와줍니다."
       },
       {
-        "hex": "#D22D25",
-        "name": "버건디 레드",
-        "reason": "상징적인 포인트 색으로 따뜻함과 감성을 더하며 메인 컬러와 조화를 이루어 카페의 세련된 분위기를 강조합니다."
+        "hex": "#D79B6E",
+        "name": "모래색",
+        "reason": "메인 컬러와 조화를 이루면서도 포인트를 주어 감각적인 분위기를 살립니다."
       }
     ]
   },
@@ -82,6 +82,10 @@
     },
     {
       "prompt": "simple pictogram, one abstract mark suggesting warmth, thick even strokes, solid warm neutral tones on pure white background, flat design, wordless, textless, no typography, no letters, no numbers, centered, negative space",
+      "source": "openai"
+    },
+    {
+      "prompt": "clean line-art emblem, a single continuous outline suggesting break in routine, even stroke weight, warm neutral tones lines on pure white background, flat vector, no fill, no shading, no text, no lettering, no characters, no caption, centered with wide margins",
       "source": "openai"
     }
   ],

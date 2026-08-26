@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """브랜드 아이덴티티 생성기 — 진입점.
 
-    python main.py
+    python main.py                                   # 대화형 (명세가 요구하는 방식)
+    python main.py --brief samples/brief.json        # 묻지 않고 바로
+    python main.py --brief b.json --output out --logos 3
 
 브리프 JSON 경로와 출력 폴더를 물어본 뒤, [1] 검증을 거쳐 [2]~[5] 로 넘긴다.
+
+명세는 `print` 와 `input` 으로 받는 대화형을 요구하므로 그것이 기본이다.
+인자는 같은 결과를 다시 만들어야 할 때(자동화·시연·채점 재현)를 위한 것이고,
+준 인자만 묻지 않고 건너뛴다.
 
 ## [1] 처리 순서
 
@@ -15,7 +21,9 @@
 
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -80,8 +88,34 @@ def load_brief(path_text: str) -> dict:
     return brief
 
 
-def ask_brief() -> dict:
-    """올바른 브리프를 받을 때까지 다시 묻는다."""
+def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
+    """인자를 읽는다. 아무것도 안 주면 전부 대화형으로 묻는다."""
+    parser = argparse.ArgumentParser(
+        description="브랜드 브리프로 네이밍·슬로건·스토리·컬러·로고를 만듭니다.",
+        epilog="인자를 생략하면 대화형으로 물어봅니다.")
+    parser.add_argument("--brief", help="브리프 JSON 경로 (생략하면 물어봅니다)")
+    parser.add_argument("--output",
+                        help=f"출력 폴더 (생략하면 물어봅니다, 기본 {DEFAULT_OUTPUT})")
+    parser.add_argument("--logos", type=int, choices=(2, 3),
+                        help="로고 시안 수 (명세는 2~3장, 기본 2장)")
+    return parser.parse_args(argv)
+
+
+def ask_brief(path_text: str | None = None) -> dict:
+    """올바른 브리프를 받을 때까지 다시 묻는다.
+
+    Args:
+        path_text: `--brief` 로 받은 경로. 주면 묻지 않는다.
+            잘못된 경로면 그 자리에서 멈춘다 — 인자로 돌리는 쪽은 사람이
+            지켜보고 있지 않으므로, 되물어 봐야 답할 사람이 없다.
+    """
+    if path_text is not None:
+        try:
+            return load_brief(path_text)
+        except BriefError as exc:
+            print(f"\n❌ {exc}\n")
+            raise SystemExit(2)
+
     while True:
         try:
             answer = input("브리프 JSON 경로를 입력하세요: ")
@@ -95,8 +129,15 @@ def ask_brief() -> dict:
             print(f"\n❌ {exc}\n")
 
 
-def ask_output() -> str:
-    """출력 폴더를 묻는다. 엔터를 치면 기본값을 쓴다."""
+def ask_output(path_text: str | None = None) -> str:
+    """출력 폴더를 묻는다. 엔터를 치면 기본값을 쓴다.
+
+    Args:
+        path_text: `--output` 으로 받은 경로. 주면 묻지 않는다.
+    """
+    if path_text is not None:
+        return path_text.strip().strip('"').strip("'") or DEFAULT_OUTPUT
+
     try:
         answer = input(f"출력 폴더 경로를 입력하세요 (엔터 시 {DEFAULT_OUTPUT}): ")
     except (EOFError, KeyboardInterrupt):
@@ -105,14 +146,19 @@ def ask_output() -> str:
     return answer.strip().strip('"').strip("'") or DEFAULT_OUTPUT
 
 
-def main() -> int:
+def main(argv: list[str] | None = None) -> int:
+    args = parse_args(argv)
     print("\n🎨 브랜드 아이덴티티 생성기\n")
 
-    brief = ask_brief()
+    if args.logos:
+        # [4] 가 이 값을 읽는다. 계약이 정한 함수 서명을 건드리지 않으려는 것이다.
+        os.environ["LOGO_COUNT"] = str(args.logos)
+
+    brief = ask_brief(args.brief)
     print(f"   📋 {brief['industry']} · {brief['target']}")
     print(f"      키워드: {', '.join(brief['keywords'])}\n")
 
-    return integrate.run(ask_output(), brief=brief)
+    return integrate.run(ask_output(args.output), brief=brief)
 
 
 if __name__ == "__main__":

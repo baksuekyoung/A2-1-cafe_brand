@@ -7,7 +7,10 @@
   로고가 아니라 인물 사진이 나온다.
 """
 
+import importlib.util
 import struct
+import sys
+from pathlib import Path
 
 import pytest
 
@@ -228,3 +231,53 @@ def test_번역에_한국어가_섞여_오면_버린다(monkeypatch):
     monkeypatch.setattr(logo_prompt, "_ask_json",
                         lambda *a, **k: _json.loads('{"themes": ["여유", "warmth"]}'))
     assert logo_prompt.translate_themes_with_llm(BRIEF) == ["warmth"]
+
+
+# --- 로고 개수 (명세: 2~3장) -----------------------------------------------
+
+def test_시안을_세_장까지_만들_수_있다():
+    """명세는 2~3장이다. 템플릿이 두 개뿐이면 3장을 요청해도 2장만 나온다."""
+    assert len(logo_prompt.PROMPT_TEMPLATES) >= 3
+    assert len(logo_prompt.build_prompts(BRIEF, NAMING, PALETTE, count=3)) == 3
+
+
+def test_시안마다_다른_템플릿을_쓴다():
+    """같은 그림이 두 장 나오면 '시안' 이 아니다."""
+    prompts = logo_prompt.build_prompts(BRIEF, NAMING, PALETTE, count=3)
+    assert len(set(prompts)) == 3
+
+
+def test_세_번째_템플릿도_글자를_금지한다():
+    """새로 넣은 템플릿이 규칙을 빠뜨리면 거기서만 글자가 나온다."""
+    for template in logo_prompt.PROMPT_TEMPLATES:
+        낮춘것 = template.lower()
+        assert "logo" not in 낮춘것
+        assert "pure white background" in 낮춘것
+        assert 낮춘것.count("no ") >= 3        # 한 번만 적으면 흘려버린다
+
+
+def test_사람용_문장도_시안_수만큼_있다():
+    assert len(logo_prompt.HUMAN_CONCEPTS) >= 3
+    assert len(logo_prompt.build_human_prompts(BRIEF, PALETTE, 3)) == 3
+
+
+# `import logo` 로 올리면 안 된다. 다른 테스트가 "단계 파일이 아직 없는" 상태를
+# 검사하려고 import 를 가로막는데, 여기서 sys.modules 에 올려 두면 그게 깨진다.
+# 그래서 파일 경로로 직접 읽어 다른 이름으로 등록한다.
+_LOGO_PATH = Path(__file__).resolve().parent.parent / "logo.py"
+_logo_spec = importlib.util.spec_from_file_location("logo_under_test", _LOGO_PATH)
+logo_module = importlib.util.module_from_spec(_logo_spec)
+sys.modules["logo_under_test"] = logo_module
+_logo_spec.loader.exec_module(logo_module)
+
+
+def test_환경변수로_로고_수를_올린다(monkeypatch):
+    """`main.py --logos 3` 이 이 환경변수를 세운다."""
+    for 값, 기대 in (("3", 3), ("2", 2), ("1", 2), ("9", 3), ("", 2), ("셋", 2)):
+        monkeypatch.setenv("LOGO_COUNT", 값)
+        assert logo_module._logo_count() == 기대, f"LOGO_COUNT={값!r}"
+
+
+def test_환경변수가_없으면_두_장이다(monkeypatch):
+    monkeypatch.delenv("LOGO_COUNT", raising=False)
+    assert logo_module._logo_count() == logo_module.LOGO_COUNT == 2

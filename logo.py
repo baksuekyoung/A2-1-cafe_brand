@@ -63,7 +63,21 @@ POLLINATIONS_URL = "https://image.pollinations.ai/prompt/{prompt}"
 # 계정마다 열려 있는 모델이 다르다. 앞에서부터 시도해 먼저 되는 것을 쓴다.
 OPENAI_MODELS = ("gpt-image-1", "dall-e-3")
 
-LOGO_COUNT = 2  # 명세는 2~3장을 요구한다
+# 명세는 2~3장을 요구한다. 기본 2장, 환경변수로 3장까지.
+LOGO_COUNT = logo_prompt.LOGO_COUNT
+MAX_LOGO_COUNT = logo_prompt.MAX_LOGO_COUNT
+
+
+def _logo_count() -> int:
+    """만들 시안 수. `LOGO_COUNT` 환경변수로 조절한다 (2~3).
+
+    `main.py --logos 3` 이 이 환경변수를 세운다. 계약이 정한
+    `generate_logos(brief, naming, palette)` 서명을 건드리지 않으려는 것이다.
+    """
+    raw = (os.environ.get("LOGO_COUNT") or "").strip()
+    if not raw.isdigit():
+        return LOGO_COUNT
+    return max(LOGO_COUNT, min(int(raw), MAX_LOGO_COUNT))
 
 # 파이썬 기본 User-Agent 는 Pollinations 앞단 방화벽이 403 으로 막는다.
 BROWSER_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
@@ -193,7 +207,7 @@ def generate_logos(brief: dict, naming: dict | None = None,
     gemini_key = (os.environ.get("GEMINI_API_KEY") or "").strip()
 
     logos = []
-    for prompt in logo_prompt.make_prompts(brief or {}, naming, palette, LOGO_COUNT):
+    for prompt in logo_prompt.make_prompts(brief or {}, naming, palette, _logo_count()):
         image, source = None, ""
         if openai_key:
             image, source = _openai_image(prompt, openai_key), "openai"

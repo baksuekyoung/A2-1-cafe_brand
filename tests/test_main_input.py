@@ -124,3 +124,58 @@ def test_넘겨받은_브리프도_규격_검사를_거친다(parts):
     results = runner.run_all(brief={"industry": "카페"})
     assert results[0].status == "ok"       # 버리지는 않는다
     assert results[0].problems             # 어긋난 곳은 기록한다
+
+
+# --- 명령행 인자 -----------------------------------------------------------
+#
+# 명세는 `print`·`input` 대화형을 요구하므로 그것이 기본이다.
+# 인자는 같은 결과를 다시 만들어야 할 때(자동화·시연·채점 재현) 쓴다.
+
+def test_인자를_안_주면_전부_묻는다():
+    args = main_module.parse_args([])
+    assert args.brief is None and args.output is None and args.logos is None
+
+
+def test_브리프를_인자로_주면_묻지_않는다(tmp_path, monkeypatch):
+    path = _write(tmp_path, "brief.json", json.dumps(BRIEF, ensure_ascii=False))
+
+    def 물으면_실패(*_a, **_k):
+        raise AssertionError("인자를 줬는데도 물었습니다")
+
+    monkeypatch.setattr("builtins.input", 물으면_실패)
+    assert main_module.ask_brief(str(path))["industry"] == "카페"
+
+
+def test_인자로_준_브리프가_잘못되면_되묻지_않고_멈춘다(tmp_path, monkeypatch):
+    """자동화로 도는 중이면 되물어 봐야 답할 사람이 없다. 무한 루프가 된다."""
+    monkeypatch.setattr("builtins.input", lambda *_a: pytest.fail("되물었습니다"))
+    with pytest.raises(SystemExit) as 멈춤:
+        main_module.ask_brief(str(tmp_path / "없는파일.json"))
+    assert 멈춤.value.code == 2
+
+
+def test_출력_폴더를_인자로_주면_묻지_않는다(monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda *_a: pytest.fail("물었습니다"))
+    assert main_module.ask_output("./결과") == "./결과"
+
+
+def test_출력_인자가_비면_기본값을_쓴다(monkeypatch):
+    monkeypatch.setattr("builtins.input", lambda *_a: pytest.fail("물었습니다"))
+    assert main_module.ask_output("") == main_module.DEFAULT_OUTPUT
+
+
+def test_따옴표로_감싼_경로를_받아_준다(monkeypatch):
+    """탐색기에서 '경로 복사' 를 하면 따옴표가 함께 붙는다."""
+    monkeypatch.setattr("builtins.input", lambda *_a: pytest.fail("물었습니다"))
+    assert main_module.ask_output('"./결과"') == "./결과"
+
+
+def test_로고_수는_명세_범위_밖을_거부한다(capsys):
+    """명세는 2~3장이다. 1장이나 4장은 argparse 가 막는다."""
+    for 값 in ("1", "4"):
+        with pytest.raises(SystemExit):
+            main_module.parse_args(["--logos", 값])
+
+
+def test_로고_수를_주면_그대로_읽힌다():
+    assert main_module.parse_args(["--logos", "3"]).logos == 3
