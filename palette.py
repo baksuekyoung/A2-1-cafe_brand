@@ -173,7 +173,8 @@ def generate_palette(brief: dict, naming: dict | None = None) -> dict:
 
     if not api_key:
         print("   ℹ️  [3] API 키가 없어 예시 값으로 돌립니다"
-              " (.env 에 OPENAI_API_KEY 또는 GEMINI_API_KEY)")
+              " (.env 에 CODYSSEY_OPENAI_KEY · OPENAI_API_KEY ·"
+              " GEMINI_API_KEY 중 하나)")
         return dict(EXAMPLE, used_example=True)
 
     try:

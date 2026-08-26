@@ -7,10 +7,14 @@
 
 ## 동작
 
-    .env 에 OPENAI_API_KEY 가 있으면  →  LLM 호출
-    없거나 호출이 실패하면            →  EXAMPLE 로 대체 (파이프라인은 중단하지 않는다)
+공급자를 앞에서부터 시도해 키가 있는 것을 쓴다.
 
-두 번째가 중요하다. API 키가 막히거나 쿼터가 소진돼도 전체 실행이 멈추지 않는다.
+    코디세이 → OpenAI → Gemini   (`_pick_provider`)
+    전부 없거나 호출이 실패하면  →  EXAMPLE 로 대체 (파이프라인은 중단하지 않는다)
+
+코디세이가 맨 앞인 이유는 소속 기관 키로 정산돼 개인 결제분을 쓰지 않기 때문이다.
+
+두 번째 줄이 중요하다. API 키가 막히거나 쿼터가 소진돼도 전체 실행이 멈추지 않는다.
 어느 쪽을 썼는지는 `run_report.md` 에 남는다.
 """
 
@@ -436,7 +440,8 @@ def generate_naming(brief: dict) -> dict:
     provider, api_key, call = _pick_provider()
     if not api_key:
         print("   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다"
-              " (.env 에 OPENAI_API_KEY 또는 GEMINI_API_KEY)")
+              " (.env 에 CODYSSEY_OPENAI_KEY · OPENAI_API_KEY ·"
+              " GEMINI_API_KEY 중 하나)")
         return dict(EXAMPLE, used_example=True)
 
     try:
