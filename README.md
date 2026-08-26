@@ -28,90 +28,24 @@ AI로 생성해 파일로 저장하는 CLI 프로그램입니다.
 pip install -r requirements.txt
 ```
 
-**필수 패키지는 없습니다.** API 호출(`urllib`)도, 컬러 팔레트 PNG 생성(`zlib`·`struct`)도
-표준 라이브러리로 합니다. 아래는 **있으면 결과가 나아지는** 선택 항목입니다.
-
-| 패키지 | 없으면 | 있으면 |
-| --- | --- | --- |
-| `python-dotenv` | 키를 환경변수로 직접 넣어야 합니다 | `.env` 파일에서 읽습니다 |
-| `matplotlib` | 팔레트 PNG에 **HEX 코드만** 찍습니다 | 색 **이름까지** 한글로 넣습니다 |
-| `pillow` | 이미지 API가 JPEG로 주면 **그 시안을 건너뜁니다** | PNG로 변환합니다 |
-
-<details>
-<summary>PNG를 어떻게 만드는지 — 표준 라이브러리의 경계</summary>
-
-**컬러 팔레트 PNG는 외부 패키지가 전혀 필요 없습니다.**
-`matplotlib`이 없으면 `zlib`으로 압축하고 `struct`로 청크를 조립해 PNG를 **직접 인코딩**합니다.
-HEX 글자는 5×7 비트맵 글꼴로 픽셀에 찍습니다.
-(구현: [`brand_result/palette_png.py`](brand_result/palette_png.py)의 `_render_builtin`)
-
-**로고 PNG는 API가 주는 형식에 달렸습니다.**
-
-| 공급자 | 받는 형식 | Pillow 필요? |
-| --- | --- | --- |
-| OpenAI | PNG | ❌ 그대로 저장 |
-| Gemini | PNG | ❌ 그대로 저장 |
-| Pollinations | **JPEG** | ⭕ 변환에 필요 |
-
-Pillow 없이 Pollinations로 떨어지면 그 시안은 건너뜁니다.
-확장자만 `.png`로 바꿔 저장하면 깨진 파일이 되기 때문입니다.
-
-</details>
+필수 패키지는 없습니다. 있으면 결과가 나아지는 선택 항목입니다.
+(`python-dotenv` 키 읽기 · `matplotlib` 팔레트에 색 이름 표시 · `pillow` JPEG→PNG 변환)
 
 ### 2. API 키 등록
 
-`.env.example`을 `.env`로 복사한 뒤 키를 채웁니다.
+`.env.example`을 `.env`로 복사하고 **둘 중 하나**를 채웁니다.
 
 ```
 OPENAI_API_KEY=본인의_API_키
 GEMINI_API_KEY=본인의_API_키
 ```
 
-**둘 중 하나만 있으면 됩니다.** OpenAI 키가 있으면 그것을, 없으면 Gemini를 씁니다.
-연결 확인:
-
 ```bash
-python test_api.py
+python test_api.py      # 연결 확인
 ```
 
-```
-  ✅ OpenAI: gpt-4o-mini → 안녕! 반가워. 무엇을 도와줄까?
-  ❌ Gemini: gemini-flash-lite-latest=HTTP 429 / gemini-flash-latest=HTTP 429
-
-✅ 연결 성공 — python main.py 를 돌리면 실제 결과가 나옵니다.
-```
-
-키가 하나도 없으면 이렇게 나옵니다.
-
-```
-❌ API 키가 없습니다.
-   .env.example 을 .env 로 복사한 뒤
-   OPENAI_API_KEY 또는 GEMINI_API_KEY 중 하나를 채워 주십시오.
-```
-
-> ### ⚠️ 키가 없을 때 — 예시 값은 데모용입니다
->
-> 키가 없어도 프로그램은 끝까지 돌아갑니다. 다만 **[2] 네이밍과 [3] 컬러는
-> 미리 넣어 둔 예시 값으로 채워집니다.** 이것은 파이프라인이 이어지는지 확인하기 위한
-> 폴백(fallback)이지 AI 생성 결과가 아닙니다.
->
-> **이 과제가 요구하는 "AI 기반 생성" 결과물을 얻으려면 키가 반드시 필요합니다.**
->
-> 예시 값을 쓴 자리는 `run_report.md`에 이렇게 남습니다 — 받는 사람이 실제 생성
-> 결과로 착각하면 안 되기 때문입니다.
->
-> ```
-> ## LLM 대신 예시 값을 쓴 곳
->
-> 키가 없거나 호출이 실패해 미리 넣어 둔 값으로 채웠습니다.
-> 제출 전에 키를 넣고 다시 돌려야 실제 생성 결과가 나옵니다.
->
-> - [2] 네이밍·슬로건·스토리
-> - [3] 컬러 팔레트
-> ```
->
-> 로고는 예시 값이 없습니다. OpenAI → Gemini → Pollinations(키 불필요) 순으로
-> 시도하므로 키가 없어도 **실제 이미지 생성 API**를 씁니다.
+> 키가 없으면 [2]·[3]이 예시 값으로 채워집니다. 파이프라인 확인용 폴백이므로
+> **실제 AI 생성 결과를 얻으려면 키가 필요합니다.** 예시 값을 쓴 자리는 `run_report.md`에 기록됩니다.
 
 ### 3. 실행
 
@@ -138,30 +72,17 @@ python main.py
 
 잘못된 경로나 형식이면 이유를 알려 주고 다시 묻습니다.
 
-#### 인자로 한 번에 돌리기
-
-명세는 `print`와 `input`으로 받는 **대화형을 요구하므로 그것이 기본**입니다.
-같은 결과를 다시 만들어야 할 때(자동화·시연·채점 재현)를 위해 인자도 받습니다.
-**준 인자만** 묻지 않고 건너뜁니다.
+인자로 한 번에 돌릴 수도 있습니다. 준 인자만 묻지 않고 건너뜁니다.
 
 ```bash
-python main.py --brief samples/brief.json --output ./output
+python main.py --brief samples/brief.json --output ./output --logos 3
 ```
 
-| 인자 | 생략하면 | 값 |
-| --- | --- | --- |
-| `--brief` | 물어봅니다 | 브리프 JSON 경로 |
-| `--output` | 물어봅니다 | 출력 폴더 (기본 `./output`) |
-| `--logos` | 2장 | 로고 시안 수 — `2` 또는 `3` |
-
-로고 시안을 3장 만들려면:
-
-```bash
-python main.py --brief samples/brief.json --logos 3
-```
-
-대화형과 달리 `--brief` 경로가 잘못되면 되묻지 않고 종료 코드 `2`로 멈춥니다.
-자동화로 도는 중에는 되물어 봐야 답할 사람이 없습니다.
+| 인자 | 값 |
+| --- | --- |
+| `--brief` | 브리프 JSON 경로 |
+| `--output` | 출력 폴더 (기본 `./output`) |
+| `--logos` | 로고 시안 수 — `2` 또는 `3` (기본 2) |
 
 ---
 
@@ -183,7 +104,7 @@ python main.py --brief samples/brief.json --logos 3
 | 구분 | 필드 |
 | --- | --- |
 | **필수** | `industry` `target` `keywords`(2개 이상) |
-| 선택 | `tone` `competitors` `notes` — 기본값을 채워 다음 단계로 넘깁니다 |
+| 선택 | `tone` `competitors` `notes` |
 
 파일 없음 · `.json` 아님 · JSON 문법 오류 · 필수 필드 누락 · 자료형 불일치를
 각각 구분해서 안내합니다. JSON 문법 오류는 몇 번째 줄인지 알려 줍니다.
@@ -194,73 +115,105 @@ python main.py --brief samples/brief.json --logos 3
 
 | 파일 | 내용 |
 | --- | --- |
-| **`brand_result.md`** | **브랜드 아이덴티티 결과 문서** |
-| `brand_result.json` | 텍스트 결과 전체 |
-| **`color_palette.png`** | **컬러 팔레트 시각화** |
-| **`logo_01.png` `logo_02.png`** | **로고 시안** (`--logos 3` 이면 `logo_03.png` 까지) |
+| **`brand_result.json`** | **텍스트 결과 전체** (명세 요구) |
+| **`color_palette.png`** | **컬러 팔레트 시각화** (명세 요구) |
+| **`logo_01~03.png`** | **로고 시안** (명세 요구) |
+| `brand_result.md` | 사람이 읽는 결과 문서 |
 | `logo_prompts.md` | 로고 생성에 쓴 영어 프롬프트 |
 | `run_report.md` | 단계별 성공·실패와 규격 위반 기록 |
-| `brand_tokens.css` | 컬러 팔레트를 CSS 변수·Tailwind 설정으로 |
-
-생성되는 내용
-
-- 브랜드명 후보 **4~5개** — 이름·**영문 표기**·읽는 법·의미·유형
-  (명세는 3~5개지만 세 개만 내면 고를 여지가 없어 네 개 이상을 요구합니다)
-  후보가 평범해지지 않도록 세 가지를 막습니다 — 업종어를 붙인 이름(`여유카페`),
-  브리프 키워드를 그대로 쓴 이름(키워드가 '여유' 인데 이름도 '여유'),
-  후보들이 같은 유형으로 쏠리는 것. 어기면 `run_report.md` 에 적힙니다.
-- 슬로건 3개, 브랜드 스토리 300자 내외(탄생 배경·철학·비전)
-- 메인 컬러 1개 + 서브 컬러 2~3개, 각 색의 **본문 대비 명도비**
-  (로고를 메인 컬러로 그리므로, 메인이 흰 배경에 묻히면 다시 고르게 합니다)
-- 로고 시안 **2~3장**과 생성에 쓴 프롬프트 (기본 2장, `--logos 3` 으로 3장)
-
-**보너스 과제로 다국어 네이밍 지원을 구현했습니다.**
-후보마다 한글 이름과 영문 표기를 함께 만들고, `쉼표 (Comma, COM-ma)` 형태로 표기합니다.
-영문 표기는 간판·도메인·SNS 계정에 그대로 쓸 수 있도록 알파벳 12자 안쪽으로 짓습니다.
+| `brand_tokens.css` | 컬러 팔레트를 CSS 변수로 |
 
 ### 실제 생성 결과
 
 `output/` 폴더에 실행 결과를 그대로 담아 두었습니다.
 
-**컬러 팔레트** — `output/color_palette.png`
+**컬러 팔레트**
 
 ![컬러 팔레트](output/color_palette.png)
 
-**로고 시안** — `--logos 3` 으로 3장 생성한 결과입니다.
+**로고 시안** — `--logos 3`으로 3장 생성
 
 | 시안 1 | 시안 2 | 시안 3 |
 | --- | --- | --- |
 | <img src="output/logo_01.png" width="220"> | <img src="output/logo_02.png" width="220"> | <img src="output/logo_03.png" width="220"> |
 | 면으로 채운 기하 아이콘 | 굵은 획 픽토그램 | 이어진 선 엠블럼 |
 
-시안마다 다른 프롬프트 템플릿을 씁니다. 같은 그림이 여러 장 나오면 시안이 아니기 때문입니다.
+**네이밍** — 후보마다 다른 유형으로, 한글 이름과 영문 표기를 함께
 
-텍스트 결과 전체는 [`output/brand_result.md`](output/brand_result.md) 와
-[`output/brand_result.json`](output/brand_result.json) 에 있습니다.
+| 이름 | 영문 표기 | 유형 |
+| --- | --- | --- |
+| 소담 | Sodam | 은유·조어 |
+| 테라스 | Terrace | 지명·역사 |
+| 아늑 | Aneuk | 속성 강조 |
+| 온도 | Ondo | 문학·인물 |
+
+텍스트 결과 전체는 [`output/brand_result.md`](output/brand_result.md)에 있습니다.
+
+---
+
+## 명세 충족 현황
+
+| 명세 요구사항 | 상태 | 구현 |
+| --- | :---: | --- |
+| 1. `print`·`input` 대화형 입력 | ✅ | `main.ask_brief` · `ask_output` |
+| 2. JSON 브리프 (필수/선택 필드) | ✅ | `main.load_brief` + `validate.check_brief` |
+| 3. LLM으로 브랜드명 3~5개 + 의미 | ✅ | `naming.py` — **4개 이상** 요구 |
+| 4. LLM으로 슬로건 3개 | ✅ | `naming.py` |
+| 5. LLM으로 스토리 300자 내외 | ✅ | `naming.py` — 280자 미달 시 재요청 |
+| 6. LLM으로 컬러 팔레트 + PNG 시각화 | ✅ | `palette.py` · `palette_png.py` |
+| 7. 이미지 API로 로고 2~3개 PNG | ✅ | `logo.py` — OpenAI→Gemini→Pollinations |
+| 8. `brand_result.json` + 개별 PNG 저장 | ✅ | `store.py` |
+| 9. API 실패 시 안내 후 다음 단계 진행 | ✅ | `runner.run_step` |
+| 10. 키를 코드에 쓰지 않음 | ✅ | `.env` → `load_dotenv()` |
+| 보너스 · 다국어 네이밍 | ✅ **선택** | 한글 + 영문 표기 + 읽는 법 |
+| 보너스 · 경쟁사 분석 | ✅ 함께 구현 | 차별화 포인트 제안 |
+
+자세한 대조는 [`docs/명세-점검표.md`](docs/명세-점검표.md)에 있습니다.
+
+---
+
+## 주요 해결 과제
+
+돌려 보고 결과를 열어 확인하며 고친 것들입니다.
+
+| 문제 | 조치 |
+| --- | --- |
+| **[3] 컬러 팔레트에 LLM 호출이 없었음** — 어떤 브리프를 넣어도 같은 색이 나오는데 리포트는 "완료" | 실제 LLM 생성으로 구현. [2]가 정한 브랜드명·스토리를 프롬프트에 반영 |
+| 산출물 PNG가 `.gitignore`에 막혀 저장소에 없었음 | 산출물만 예외 처리해 커밋 |
+| 스토리가 204자 (명세 300자 내외) | 280자 미달 시 최대 2회 재요청 |
+| 로고가 2장 고정 (명세 2~3개) | 세 번째 프롬프트 템플릿 추가 |
+| 네이밍이 `여유카페·감성커피`처럼 평범 | 업종어·키워드 복붙·유형 쏠림을 프롬프트에서 차단 |
+| 로고 글자가 깨져 나옴 | `logo` 대신 `icon`·`symbol`, 브랜드명 제외, 글자 금지를 반복 |
+| 팔레트 PNG 저장 실패가 실행 전체를 중단 | 예외를 넓게 잡고 내장 렌더러로 폴백 |
+| 키가 거부돼도(401) 조용히 넘어감 | 그 사실을 출력 |
+| 예시 값 대체가 제출물에 안 남음 | `run_report.md`에 기록 |
+| 테스트가 실제 API를 호출 (17.6초) | `conftest.py`가 키 제거 + 네트워크 차단 (2.0초) |
 
 ---
 
 ## 구조
 
 ```
-main.py                    진입점 — 대화형 입력과 [1] 브리프 검증
-integrate.py               [5] 통합 실행
-test_api.py                API 연결 테스트
+main.py              진입점 — 대화형 입력과 [1] 브리프 검증
+integrate.py         [5] 통합 실행
+test_api.py          API 연결 테스트
+
 brief.py             [1] load_brief() -> dict
 naming.py            [2] generate_naming(brief) -> dict
 palette.py           [3] generate_palette(brief, naming) -> dict
 logo.py              [4] generate_logos(brief, naming, palette) -> list
+
 brand_result/
-  runner.py                단계 호출과 예외 격리
-  validate.py              데이터 계약 검증
-  store.py                 파일 저장 · 명도 대비 계산
-  report.py                결과 문서 생성
-  palette_png.py           컬러 팔레트 PNG 시각화
-  logo_prompt.py           로고용 영어 프롬프트 생성
+  runner.py          단계 호출과 예외 격리
+  validate.py        데이터 계약 검증
+  store.py           파일 저장 · 명도 대비 계산
+  report.py          결과 문서 생성
+  palette_png.py     컬러 팔레트 PNG 시각화
+  logo_prompt.py     로고용 영어 프롬프트 생성
 ```
 
-각 단계는 **파일 하나 · 함수 하나**로 분리되어 있습니다.
-넘기는 형식만 지키면 내부 구현은 자유입니다.
+각 단계는 **파일 하나 · 함수 하나**입니다. 넘기는 형식만 지키면 내부 구현은 자유입니다.
+규격은 [`docs/데이터-계약.md`](docs/데이터-계약.md)에 있습니다.
 
 ---
 
@@ -270,38 +223,12 @@ brand_result/
 python -m pytest -q
 ```
 
-**166개.** 전부 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
+**166개.** 대부분 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
 규격이 어긋날 때, 저장이 불가능할 때, 입력이 잘못됐을 때,
-LLM 이 hex 를 소문자나 `rgb()` 로 줬을 때, 로고 프롬프트에 한국어가 섞였을 때.
+LLM이 hex를 소문자나 `rgb()`로 줬을 때, 로고 프롬프트에 한국어가 섞였을 때.
 
-테스트는 **실제 API 를 부르지 않습니다.** `conftest.py` 가 키를 지우고 네트워크를 막습니다 —
-막지 않으면 "키가 없을 때" 를 시험하려던 테스트가 남아 있는 다른 키를 주워 실제로 호출합니다.
-
----
-
-## 문서
-
-| 문서 | 내용 |
-| --- | --- |
-| [`docs/데이터-계약.md`](docs/데이터-계약.md) | 단계 간 입출력 규격 |
-| [`docs/명세-점검표.md`](docs/명세-점검표.md) | 명세 요구사항과 구현 대조표 |
+테스트는 실제 API를 부르지 않습니다. `conftest.py`가 키를 지우고 네트워크를 막습니다.
 
 ---
 
-## 실행 환경
-
-| | |
-| --- | --- |
-| Python | **3.10 이상** — 과제 명세가 정한 기준입니다 |
-| 확인한 환경 | Windows 11 · Python 3.14.2 |
-| 운영체제 | 무관 — OS 전용 API를 쓰지 않습니다 |
-
-`str | None` 같은 표기를 쓰지만 모든 파일이 `from __future__ import annotations`로
-시작하므로 표기 자체가 하위 버전에서 문제를 일으키지는 않습니다.
-다만 **3.10 미만에서는 검증하지 않았습니다.**
-
-한글 Windows 콘솔(cp949)에서 이모지가 깨지지 않도록 표준 출력을 UTF-8로 다시 엽니다.
-
----
-
-이 저장소는 대전 Code Odyssey · AI 활용 실습 Term Project 제출물입니다.
+Windows 11 · Python 3.14.2에서 확인했습니다. OS 전용 API는 쓰지 않습니다.
