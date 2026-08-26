@@ -117,7 +117,7 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | --- | --- |
 | **`brand_result.json`** | **텍스트 결과 전체** (명세 요구) |
 | **`color_palette.png`** | **컬러 팔레트 시각화** (명세 요구) |
-| **`logo_01~03.png`** | **로고 시안** (명세 요구) |
+| **`logo_01.png` …** | **로고 시안** (명세 요구) — 요청한 장수만큼 `logo_03.png` 까지 |
 | `brand_result.md` | 사람이 읽는 결과 문서 |
 | `logo_prompts.md` | 로고 생성에 쓴 영어 프롬프트 |
 | `run_report.md` | 단계별 성공·실패와 규격 위반 기록 |
@@ -155,8 +155,8 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 
 | 명세 요구사항 | 상태 | 구현 |
 | --- | :---: | --- |
-| 1. `print`·`input` 대화형 입력 | ✅ | `main.ask_brief` · `ask_output` |
-| 2. JSON 브리프 (필수/선택 필드) | ✅ | `main.load_brief` + `validate.check_brief` |
+| 1. `print`·`input` 대화형 입력 | ✅ | `main.py` — `ask_brief` · `ask_output` |
+| 2. JSON 브리프 (필수/선택 필드) | ✅ | `main.py` — `load_brief` + `validate.check_brief` |
 | 3. LLM으로 브랜드명 3~5개 + 의미 | ✅ | `naming.py` — **4개 이상** 요구 |
 | 4. LLM으로 슬로건 3개 | ✅ | `naming.py` |
 | 5. LLM으로 스토리 300자 내외 | ✅ | `naming.py` — 280자 미달 시 재요청 |
@@ -188,17 +188,19 @@ python main.py --brief samples/brief.json --output ./output --logos 3
 | 키가 거부돼도(401) 조용히 넘어감 | 그 사실을 출력 |
 | 예시 값 대체가 제출물에 안 남음 | `run_report.md`에 기록 |
 | 테스트가 실제 API를 호출 (17.6초) | `conftest.py`가 키 제거 + 네트워크 차단 (2.0초) |
+| `brief.py`가 검증을 건너뜀 — 이름만 `main`과 같고 실제로는 샘플 파일을 그냥 읽음 | `main.load_brief`를 부르게 통일. 필수 필드 없는 브리프가 통과하던 문제 해결 |
 
 ---
 
 ## 구조
 
 ```
-main.py              진입점 — 대화형 입력과 [1] 브리프 검증
+main.py              진입점 — 대화형 입력과 [1] 브리프 읽기·검증(실제 구현)
 integrate.py         [5] 통합 실행
 test_api.py          API 연결 테스트
 
-brief.py             [1] load_brief() -> dict
+brief.py             [1] load_brief() -> dict  — main 의 검증을 부른다
+                         (integrate.py 를 단독으로 돌릴 때만 쓰입니다)
 naming.py            [2] generate_naming(brief) -> dict
 palette.py           [3] generate_palette(brief, naming) -> dict
 logo.py              [4] generate_logos(brief, naming, palette) -> list
@@ -223,7 +225,7 @@ brand_result/
 python -m pytest -q
 ```
 
-**166개.** 대부분 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
+**168개.** 대부분 실패 상황을 검증합니다 — 단계 파일이 없을 때, 코드가 예외를 던질 때,
 규격이 어긋날 때, 저장이 불가능할 때, 입력이 잘못됐을 때,
 LLM이 hex를 소문자나 `rgb()`로 줬을 때, 로고 프롬프트에 한국어가 섞였을 때.
 
@@ -231,4 +233,6 @@ LLM이 hex를 소문자나 `rgb()`로 줬을 때, 로고 프롬프트에 한국�
 
 ---
 
-Windows 11 · Python 3.14.2에서 확인했습니다. OS 전용 API는 쓰지 않습니다.
+Windows 11 · **Python 3.14.2**(2025-12-05 배포)에서 확인했습니다.
+3.10 이상이면 동작합니다 — `match` 등 3.10 전용 문법은 쓰지 않습니다.
+OS 전용 API도 쓰지 않습니다.
