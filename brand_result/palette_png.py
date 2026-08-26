@@ -125,7 +125,14 @@ def _colors(palette: dict) -> tuple[dict, list[dict]]:
 
 
 def _render_with_matplotlib(palette: dict, target: Path) -> bool:
-    """matplotlib 이 있으면 이름까지 넣은 그림을 그린다. 없으면 False."""
+    """matplotlib 이 있으면 이름까지 넣은 그림을 그린다.
+
+    Returns:
+        False 면 호출부가 내장 렌더러로 넘어간다. matplotlib 이 없을 때뿐 아니라
+        그리다 실패했을 때도 False 다 — LLM 이 hex 를 틀리게 주면
+        matplotlib 이 ValueError 를 던지는데, 그걸로 실행 전체가 죽으면
+        "API 가 실패해도 다음 단계를 계속한다" 는 요구가 깨진다.
+    """
     try:
         import matplotlib
         matplotlib.use("Agg")  # 화면 없는 환경에서도 돌아야 한다
@@ -149,23 +156,30 @@ def _render_with_matplotlib(palette: dict, target: Path) -> bool:
         break
     plt.rcParams["axes.unicode_minus"] = False
 
-    figure, axes = plt.subplots(figsize=(len(entries) * 2.4, 3.4))
-    for index, entry in enumerate(entries):
-        hex_code = str(entry.get("hex", "#808080"))
-        axes.add_patch(Rectangle((index, 0), 1, 1, facecolor=hex_code, edgecolor="white", lw=2))
-        text_color = "#000000" if _text_color(_rgb(hex_code)) == (0, 0, 0) else "#FFFFFF"
-        axes.text(index + 0.5, 0.60, str(entry.get("name", "")), ha="center", va="center",
-                  color=text_color, fontsize=11)
-        axes.text(index + 0.5, 0.40, hex_code.upper(), ha="center", va="center",
-                  color=text_color, fontsize=10, family="monospace")
-        axes.text(index + 0.5, -0.12, "메인" if index == 0 and main else f"서브 {index}",
-                  ha="center", va="center", fontsize=9, color="#555555")
+    figure = None
+    try:
+        figure, axes = plt.subplots(figsize=(len(entries) * 2.4, 3.4))
+        for index, entry in enumerate(entries):
+            hex_code = str(entry.get("hex", "#808080"))
+            axes.add_patch(Rectangle((index, 0), 1, 1, facecolor=hex_code, edgecolor="white", lw=2))
+            text_color = "#000000" if _text_color(_rgb(hex_code)) == (0, 0, 0) else "#FFFFFF"
+            axes.text(index + 0.5, 0.60, str(entry.get("name", "")), ha="center", va="center",
+                      color=text_color, fontsize=11)
+            axes.text(index + 0.5, 0.40, hex_code.upper(), ha="center", va="center",
+                      color=text_color, fontsize=10, family="monospace")
+            axes.text(index + 0.5, -0.12, "메인" if index == 0 and main else f"서브 {index}",
+                      ha="center", va="center", fontsize=9, color="#555555")
 
-    axes.set_xlim(0, len(entries))
-    axes.set_ylim(-0.25, 1)
-    axes.axis("off")
-    figure.savefig(target, dpi=150, bbox_inches="tight", facecolor="white")
-    plt.close(figure)
+        axes.set_xlim(0, len(entries))
+        axes.set_ylim(-0.25, 1)
+        axes.axis("off")
+        figure.savefig(target, dpi=150, bbox_inches="tight", facecolor="white")
+    except Exception:
+        # 색 값이 어긋났거나 폰트가 말썽인 경우다. 내장 렌더러가 받아 준다.
+        return False
+    finally:
+        if figure is not None:
+            plt.close(figure)
     return True
 
 

@@ -15,14 +15,14 @@ import pytest
 
 from brand_result import report, validate
 
-# 이름 그대로 import 하면 안 된다. 다른 테스트가 "step*.py 가 아직 없는" 상태를
+# 이름 그대로 import 하면 안 된다. 다른 테스트가 "단계 파일이 아직 없는" 상태를
 # 검사하려고 import 를 가로막는데, 여기서 미리 sys.modules 에 올려 두면 충돌한다.
 # 그래서 파일 경로로 직접 읽어 **다른 이름**으로 등록한다.
-_STEP2 = Path(__file__).resolve().parent.parent / "step2_naming.py"
-_spec = importlib.util.spec_from_file_location("step2_naming_under_test", _STEP2)
-step2_naming = importlib.util.module_from_spec(_spec)
-sys.modules["step2_naming_under_test"] = step2_naming
-_spec.loader.exec_module(step2_naming)
+_STEP2 = Path(__file__).resolve().parent.parent / "naming.py"
+_spec = importlib.util.spec_from_file_location("naming_under_test", _STEP2)
+naming = importlib.util.module_from_spec(_spec)
+sys.modules["naming_under_test"] = naming
+_spec.loader.exec_module(naming)
 
 BRIEF = {
     "industry": "카페",
@@ -37,7 +37,7 @@ BRIEF = {
 # --- 프롬프트 ------------------------------------------------------------
 
 def test_브리프의_여섯_필드가_모두_프롬프트에_들어간다():
-    prompt = step2_naming.build_prompt(BRIEF)
+    prompt = naming.build_prompt(BRIEF)
     assert "카페" in prompt
     assert "20~30대 직장인" in prompt
     assert "여유, 따뜻함" in prompt
@@ -47,27 +47,27 @@ def test_브리프의_여섯_필드가_모두_프롬프트에_들어간다():
 
 
 def test_보너스_규칙이_프롬프트에_실린다():
-    prompt = step2_naming.build_prompt(BRIEF)
+    prompt = naming.build_prompt(BRIEF)
     assert "english" in prompt              # 영문 네이밍
     assert "differentiation" in prompt      # 경쟁사 차별화
 
 
 def test_명세가_요구하는_개수가_프롬프트에_숫자로_적힌다():
     """'여러 개' 라고 쓰면 모델마다 다르게 읽는다."""
-    prompt = step2_naming.build_prompt(BRIEF)
+    prompt = naming.build_prompt(BRIEF)
     assert "3개 이상 5개 이하" in prompt
     assert "정확히 3개" in prompt           # 슬로건
     assert "300자 내외" in prompt           # 스토리
 
 
 def test_스토리_규칙이_명세_문구를_담는다():
-    assert "탄생 배경" in step2_naming.STORY_RULE
-    assert "철학" in step2_naming.STORY_RULE
-    assert "비전" in step2_naming.STORY_RULE
+    assert "탄생 배경" in naming.STORY_RULE
+    assert "철학" in naming.STORY_RULE
+    assert "비전" in naming.STORY_RULE
 
 
 def test_경쟁사가_없으면_그_줄을_빼고_만든다():
-    prompt = step2_naming.build_prompt({"industry": "카페", "keywords": ["여유"]})
+    prompt = naming.build_prompt({"industry": "카페", "keywords": ["여유"]})
     assert "참고 경쟁사" not in prompt
 
 
@@ -76,18 +76,18 @@ def test_경쟁사가_없으면_그_줄을_빼고_만든다():
 # --- 보너스: 다국어 네이밍 지원 -----------------------------------------
 
 def test_다국어_규칙이_프롬프트에_실린다():
-    prompt = step2_naming.build_prompt(BRIEF)
+    prompt = naming.build_prompt(BRIEF)
     assert "한글 이름과 영문 표기를 함께" in prompt
     assert "reading" in prompt
 
 
 def test_영문_표기의_조건이_숫자로_적힌다():
     """'짧게' 라고 쓰면 모델마다 다르게 읽는다."""
-    assert "12자 안쪽" in step2_naming.MULTILINGUAL_RULE
+    assert "12자 안쪽" in naming.MULTILINGUAL_RULE
 
 
 def test_읽는_법도_받아_담는다():
-    result = step2_naming._normalize({
+    result = naming._normalize({
         "naming": [{"name": "온기", "english": "Ongi", "reading": "OWN-gee",
                     "meaning": "따뜻한 기운"}],
     })
@@ -97,7 +97,7 @@ def test_읽는_법도_받아_담는다():
 def test_영문_표기가_비면_규격_위반으로_잡는다():
     """보너스로 택한 항목이므로 빠지면 기록에 남아야 한다."""
     naming = {"naming": [{"name": f"이름{i}", "meaning": "뜻"} for i in range(3)],
-              "slogans": ["가", "나", "다"], "story": "이" * 250}
+              "slogans": ["가", "나", "다"], "story": "이" * 300}
     문제 = validate.check_naming(naming)
     assert len(문제) == 3
     assert all("english" in p for p in 문제)
@@ -105,12 +105,12 @@ def test_영문_표기가_비면_규격_위반으로_잡는다():
 
 def test_영문_자리에_한글이_오면_잡는다():
     naming = {"naming": [{"name": "온기", "english": "온기", "meaning": "뜻"}] * 3,
-              "slogans": ["가", "나", "다"], "story": "이" * 250}
+              "slogans": ["가", "나", "다"], "story": "이" * 300}
     assert any("영문이 아닌" in p for p in validate.check_naming(naming))
 
 
 def test_예시값의_모든_후보에_영문_표기가_있다():
-    for item in step2_naming.EXAMPLE["naming"]:
+    for item in naming.EXAMPLE["naming"]:
         assert item["english"].isascii() and item["english"]
         assert item["reading"]
 
@@ -129,7 +129,7 @@ def test_영문_표기가_없으면_한글만_쓴다():
 
 
 def test_영문_표기를_받아_담는다():
-    result = step2_naming._normalize({
+    result = naming._normalize({
         "naming": [{"name": "온기", "english": "Ongi", "meaning": "따뜻한 기운"}],
         "slogans": ["가", "나", "다"],
         "story": "이야기",
@@ -139,12 +139,12 @@ def test_영문_표기를_받아_담는다():
 
 def test_영문_표기가_없어도_키는_있다():
     """뒤 단계가 매번 확인하지 않아도 되게 빈 문자열로 채운다."""
-    result = step2_naming._normalize({"naming": [{"name": "온기"}]})
+    result = naming._normalize({"naming": [{"name": "온기"}]})
     assert result["naming"][0]["english"] == ""
 
 
 def test_경쟁사_분석을_받아_담는다():
-    result = step2_naming._normalize({
+    result = naming._normalize({
         "competitors": [{"competitor": "블루보틀", "position": "스페셜티",
                          "differentiation": "앉아 있어도 되는 시간을 판다"}],
     })
@@ -153,7 +153,7 @@ def test_경쟁사_분석을_받아_담는다():
 
 def test_차별화가_비면_그_경쟁사는_버린다():
     """이름만 있고 알맹이가 없으면 결과 문서에 실을 것이 없다."""
-    result = step2_naming._normalize({
+    result = naming._normalize({
         "competitors": [
             {"competitor": "블루보틀", "position": "스페셜티", "differentiation": "  "},
             {"competitor": "스타벅스", "position": "체인", "differentiation": "동네의 결"},
@@ -163,11 +163,11 @@ def test_차별화가_비면_그_경쟁사는_버린다():
 
 
 def test_슬로건을_하나만_주면_배열로_감싼다():
-    assert step2_naming._normalize({"slogans": "하나뿐"})["slogans"] == ["하나뿐"]
+    assert naming._normalize({"slogans": "하나뿐"})["slogans"] == ["하나뿐"]
 
 
 def test_이름을_문자열로만_줘도_받아_낸다():
-    result = step2_naming._normalize({"naming": ["온기"]})
+    result = naming._normalize({"naming": ["온기"]})
     assert result["naming"][0] == {"name": "온기", "meaning": ""}
 
 
@@ -193,11 +193,11 @@ def test_모델이_돌려준_결과를_그대로_쓴다(monkeypatch):
     그래서 여기서도 패키지가 아니라 그 함수를 가로챈다.
     """
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai", lambda *a, **k: ANSWER)
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", lambda *a, **k: ANSWER)
 
-    result = step2_naming.generate_naming(BRIEF)
-    assert result is not step2_naming.EXAMPLE
+    result = naming.generate_naming(BRIEF)
+    assert result is not naming.EXAMPLE
     assert [n["english"] for n in result["naming"]] == ["Ongi", "Comma", "Modak"]
     assert [n["reading"] for n in result["naming"]] == ["OWN-gee", "COM-ma", "MO-dak"]
     assert result["competitors"][0]["differentiation"] == "머무는 시간"
@@ -206,17 +206,17 @@ def test_모델이_돌려준_결과를_그대로_쓴다(monkeypatch):
 def test_openai_키가_없으면_gemini_로_간다(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.setenv("GEMINI_API_KEY", "AQ.테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_gemini", lambda *a, **k: ANSWER)
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_gemini", lambda *a, **k: ANSWER)
 
-    assert step2_naming.generate_naming(BRIEF) is not step2_naming.EXAMPLE
+    assert naming.generate_naming(BRIEF) is not naming.EXAMPLE
 
 
 def test_공급자를_고르는_순서는_openai_먼저(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-가짜")
     monkeypatch.setenv("GEMINI_API_KEY", "AQ.가짜")
-    이름, 키, 호출 = step2_naming._pick_provider()
-    assert 이름 == "OpenAI" and 호출 is step2_naming._call_openai
+    이름, 키, 호출 = naming._pick_provider()
+    assert 이름 == "OpenAI" and 호출 is naming._call_openai
 
 
 def test_스토리가_짧으면_다시_청한다(monkeypatch):
@@ -231,10 +231,10 @@ def test_스토리가_짧으면_다시_청한다(monkeypatch):
         return {"story": "구" * 300}
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
 
-    result = step2_naming.generate_naming(BRIEF)
+    result = naming.generate_naming(BRIEF)
     assert len(호출) == 2                      # 목표치를 채웠으므로 더 청하지 않는다
     assert len(result["story"]) == 300
     assert "원래 스토리" in 호출[1]            # 다시 청할 때 원문을 함께 준다
@@ -244,10 +244,10 @@ def test_다시_청한_것도_짧으면_원래_것을_쓴다(monkeypatch):
     """끝까지 못 늘리면 받아들인다 — 규격 미달은 리포트에 남아 사람이 본다."""
     짧은 = dict(ANSWER, story="이" * 150)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai",
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai",
                         lambda *a, **k: 짧은 if len(a[0]) > 500 else {"story": "구" * 100})
-    result = step2_naming.generate_naming(BRIEF)
+    result = naming.generate_naming(BRIEF)
     assert result["story"] == "이" * 150
 
 
@@ -261,17 +261,17 @@ def test_다시_청하는_횟수에_상한이_있다(monkeypatch):
         return 짧은 if len(호출) == 1 else {"story": "구" * 160}
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
 
-    step2_naming.generate_naming(BRIEF)
-    assert len(호출) == 1 + step2_naming.STORY_RETRIES
+    naming.generate_naming(BRIEF)
+    assert len(호출) == 1 + naming.STORY_RETRIES
 
 
 def test_명세가_요구하는_300자에_맞춰_다시_청한다():
     """계약 최소치(200자)가 아니라 명세의 '300자 내외'를 기준으로 삼는다."""
-    assert step2_naming.STORY_TARGET_CHARS > step2_naming.MIN_STORY_CHARS
-    assert 260 <= step2_naming.STORY_TARGET_CHARS <= 300
+    assert naming.STORY_TARGET_CHARS > naming.MIN_STORY_CHARS
+    assert 260 <= naming.STORY_TARGET_CHARS <= 300
 
 
 def test_다시_청하다_실패해도_죽지_않는다(monkeypatch):
@@ -285,9 +285,9 @@ def test_다시_청하다_실패해도_죽지_않는다(monkeypatch):
         raise RuntimeError("쿼터 초과")
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
-    assert step2_naming.generate_naming(BRIEF)["story"] == "이" * 150
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
+    assert naming.generate_naming(BRIEF)["story"] == "이" * 150
 
 
 def test_스토리가_충분하면_다시_청하지_않는다(monkeypatch):
@@ -299,33 +299,33 @@ def test_스토리가_충분하면_다시_청하지_않는다(monkeypatch):
         return ANSWER
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai", 가짜호출)
-    step2_naming.generate_naming(BRIEF)
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai", 가짜호출)
+    naming.generate_naming(BRIEF)
     assert 호출수[0] == 1
 
 
 def test_호출이_실패하면_예시로_대신하고_멈추지_않는다(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai",
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai",
                         lambda *a, **k: (_ for _ in ()).throw(RuntimeError("쿼터 초과")))
-    assert step2_naming.generate_naming(BRIEF) is step2_naming.EXAMPLE
+    assert naming.generate_naming(BRIEF) == dict(naming.EXAMPLE, used_example=True)
 
 
 def test_결과가_규격에_못_미치면_예시로_대신한다(monkeypatch):
     """이름 하나짜리 결과로 뒤 단계를 돌릴 수는 없다."""
     monkeypatch.setenv("OPENAI_API_KEY", "sk-테스트용가짜키")
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    monkeypatch.setattr(step2_naming, "_call_openai",
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(naming, "_call_openai",
                         lambda *a, **k: {"naming": [{"name": "하나"}], "slogans": ["가"]})
-    assert step2_naming.generate_naming(BRIEF) is step2_naming.EXAMPLE
+    assert naming.generate_naming(BRIEF) == dict(naming.EXAMPLE, used_example=True)
 
 
 def test_키가_없으면_예시로_돈다(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    monkeypatch.setattr(step2_naming, "load_dotenv", lambda *a, **k: False)
-    assert step2_naming.generate_naming(BRIEF) is step2_naming.EXAMPLE
+    monkeypatch.setattr(naming, "load_dotenv", lambda *a, **k: False)
+    assert naming.generate_naming(BRIEF) == dict(naming.EXAMPLE, used_example=True)
 
 
 # --- 규격 검증 -----------------------------------------------------------
@@ -334,7 +334,7 @@ def test_이름이_여섯_개면_규격_위반():
     """명세는 3~5개를 요구한다."""
     naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
                          for i in range(6)],
-              "slogans": ["가", "나", "다"], "story": "이" * 250}
+              "slogans": ["가", "나", "다"], "story": "이" * 300}
     assert any("3~5개" in p for p in validate.check_naming(naming))
 
 
@@ -342,34 +342,34 @@ def test_경쟁사_분석이_없어도_규격을_통과한다():
     """경쟁사 분석은 택하지 않은 보너스라 없어도 된다."""
     naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
                          for i in range(3)],
-              "slogans": ["가", "나", "다"], "story": "이" * 250}
+              "slogans": ["가", "나", "다"], "story": "이" * 300}
     assert validate.check_naming(naming) == []
 
 
 def test_경쟁사_모양이_틀리면_잡는다():
     naming = {"naming": [{"name": f"이름{i}", "english": f"Name{i}", "meaning": "뜻"}
                          for i in range(3)],
-              "slogans": ["가", "나", "다"], "story": "이" * 250,
+              "slogans": ["가", "나", "다"], "story": "이" * 300,
               "competitors": "블루보틀"}
     assert any("competitors" in p for p in validate.check_naming(naming))
 
 
 def test_예시값이_스스로_규격을_지킨다():
     """기본 예시가 규격 미달이면 팀원이 잘못된 본보기를 따라 하게 된다."""
-    문제 = [p for p in validate.check_naming(step2_naming.EXAMPLE) if "story" not in p]
+    문제 = [p for p in validate.check_naming(naming.EXAMPLE) if "story" not in p]
     assert 문제 == []
 
 
 # --- 결과 문서 -----------------------------------------------------------
 
 def test_결과_문서에_영문_표기가_함께_실린다():
-    text = "\n".join(report._naming_block(step2_naming.EXAMPLE))
+    text = "\n".join(report._naming_block(naming.EXAMPLE))
     assert "온기(溫氣) (Ongi, OWN-gee)" in text
     assert "쉼표 (Comma, COM-ma)" in text
 
 
 def test_결과_문서에_경쟁사_분석_표가_실린다():
-    text = "\n".join(report._naming_block(step2_naming.EXAMPLE))
+    text = "\n".join(report._naming_block(naming.EXAMPLE))
     assert "경쟁사 분석과 차별화 포인트" in text
     assert "블루보틀" in text
 

@@ -30,18 +30,18 @@ def test_파트가_하나도_없어도_결과가_저장된다(tmp_path, parts):
 
 def test_없는_파트는_run_report_에_이름이_적힌다(parts):
     """팀원이 자기 파일명을 그대로 보고 무엇을 내야 하는지 알 수 있어야 한다."""
-    parts(step1_brief=True)
+    parts(brief=True)
     payload = runner.to_result_dict(runner.run_all(), "2026-08-21T12:00:00")
     text = report.build_run_report(payload)
 
-    assert "step2_naming.py" in text
-    assert "step3_palette.py" in text
-    assert "step4_logo.py" in text
+    assert "naming.py" in text
+    assert "palette.py" in text
+    assert "logo.py" in text
     assert "데이터-계약.md" in text
 
 
 def test_일부만_있어도_있는_것은_저장된다(parts):
-    parts(step1_brief=True, step2_naming=True)
+    parts(brief=True, naming=True)
     results = runner.run_all()
 
     assert [result.status for result in results] == ["ok", "ok", "missing", "missing"]
@@ -54,9 +54,9 @@ def test_일부만_있어도_있는_것은_저장된다(parts):
 def test_남의_코드가_터져도_뒤_단계는_진행한다(parts):
     """팀원 코드에서 예외가 나도 통합이 거기서 끝나면 안 된다."""
     parts(
-        step1_brief=True,
-        step2_naming="def generate_naming(brief):\n    raise RuntimeError('API 키 없음')\n",
-        step3_palette=True,
+        brief=True,
+        naming="def generate_naming(brief):\n    raise RuntimeError('API 키 없음')\n",
+        palette=True,
     )
     results = runner.run_all()
 
@@ -67,7 +67,7 @@ def test_남의_코드가_터져도_뒤_단계는_진행한다(parts):
 
 def test_import_중에_터지는_모듈도_잡는다(parts):
     """파일은 있는데 import 하는 순간 터지는 경우 (오타·빠진 패키지)."""
-    parts(step1_brief="import 없는패키지\n")
+    parts(brief="import 없는패키지\n")
     results = runner.run_all()
 
     assert results[0].status == "missing"
@@ -76,7 +76,7 @@ def test_import_중에_터지는_모듈도_잡는다(parts):
 
 def test_함수_이름이_다르면_계약을_가리킨다(parts):
     """파일은 냈는데 함수명이 계약과 다른 경우."""
-    parts(step1_brief="def get_brief():\n    return {}\n")
+    parts(brief="def get_brief():\n    return {}\n")
     results = runner.run_all()
 
     assert results[0].status == "missing"
@@ -92,8 +92,8 @@ def test_규격이_어긋나도_버리지_않고_기록한다(parts):
         "story": "짧다",  # 200자 이상이어야 한다
     }
     parts(
-        step1_brief=True,
-        step2_naming=f"def generate_naming(brief):\n    return {부족한_네이밍!r}\n",
+        brief=True,
+        naming=f"def generate_naming(brief):\n    return {부족한_네이밍!r}\n",
     )
     results = runner.run_all()
 
@@ -107,9 +107,9 @@ def test_규격이_어긋나도_버리지_않고_기록한다(parts):
 def test_뒤_단계는_앞_결과를_인자로_받는다(parts):
     """계약이 정한 인자 순서대로 넘어가야 서로 어긋나지 않는다."""
     parts(
-        step1_brief=True,
-        step2_naming=True,
-        step3_palette=(
+        brief=True,
+        naming=True,
+        palette=(
             "def generate_palette(brief, naming):\n"
             "    assert brief['industry'] == '성지순례 안내'\n"
             "    assert naming['slogans'][0] == '잠깐 멈추셔도 됩니다'\n"
@@ -124,7 +124,7 @@ def test_뒤_단계는_앞_결과를_인자로_받는다(parts):
 def test_앞이_없으면_None_을_넘긴다(parts):
     """앞 단계가 실패해도 뒤 단계는 시도한다. 계약이 그렇게 정해져 있다."""
     parts(
-        step2_naming=(
+        naming=(
             "def generate_naming(brief):\n"
             "    assert brief is None\n"
             "    return {'naming': [{'name': 'a', 'meaning': 'm'}] * 3,\n"
@@ -143,7 +143,7 @@ def test_빠진_패키지를_없는_파일로_오해하지_않는다(parts):
     팀원은 멀쩡한 파일을 다시 만들려고 한다. 처음 구현이 실제로 이렇게 틀렸고,
     위의 test_import_중에_터지는_모듈도_잡는다 가 그것을 잡았다.
     """
-    parts(step1_brief="import 없는패키지\n")
+    parts(brief="import 없는패키지\n")
     message = runner.run_all()[0].message
 
     assert "없는 모듈: 없는패키지" in message
@@ -153,4 +153,4 @@ def test_빠진_패키지를_없는_파일로_오해하지_않는다(parts):
 def test_파일이_진짜_없을_때는_없다고_한다(parts):
     """위 구분이 원래 메시지를 망가뜨리지 않았는지 확인한다."""
     parts()
-    assert "step1_brief.py 가 아직 없습니다" in runner.run_all()[0].message
+    assert "brief.py 가 아직 없습니다" in runner.run_all()[0].message

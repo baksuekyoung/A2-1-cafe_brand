@@ -18,10 +18,10 @@ from . import validate
 
 # docs/데이터-계약.md 가 정한 파일명·함수명. 이 표가 계약의 코드 쪽 표현이다.
 STEPS = (
-    ("[1] 브리프", "step1_brief", "load_brief", validate.check_brief),
-    ("[2] 네이밍·슬로건·스토리", "step2_naming", "generate_naming", validate.check_naming),
-    ("[3] 컬러 팔레트", "step3_palette", "generate_palette", validate.check_palette),
-    ("[4] 로고 시안", "step4_logo", "generate_logos", validate.check_logos),
+    ("[1] 브리프", "brief", "load_brief", validate.check_brief),
+    ("[2] 네이밍·슬로건·스토리", "naming", "generate_naming", validate.check_naming),
+    ("[3] 컬러 팔레트", "palette", "generate_palette", validate.check_palette),
+    ("[4] 로고 시안", "logo", "generate_logos", validate.check_logos),
 )
 
 
@@ -92,7 +92,7 @@ def run_all(*, brief: dict | None = None, debug: bool = False) -> list[StepResul
 
     Args:
         brief: 이미 읽어 검증한 브리프. `main.py` 가 대화형으로 경로를 받아
-            [1] 을 끝낸 뒤 넘긴다. 주면 `step1_brief.py` 를 부르지 않는다.
+            [1] 을 끝낸 뒤 넘긴다. 주면 `brief.py` 를 부르지 않는다.
             규격 검사는 여기서 한 번 더 한다 — 어디로 들어왔든 계약은 같다.
     """
     results: list[StepResult] = []

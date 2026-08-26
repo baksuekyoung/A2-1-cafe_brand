@@ -87,7 +87,7 @@ def test_hex_형식이_아니면_대비를_계산하지_않는다():
 
 
 def test_결과_문서에_빈_자리가_드러난다(parts):
-    parts(step1_brief=True)
+    parts(brief=True)
     payload = runner.to_result_dict(runner.run_all(), "2026-08-21T12:00:00")
     text = report.build_markdown(payload)
 
@@ -98,8 +98,8 @@ def test_결과_문서에_빈_자리가_드러난다(parts):
 
 def test_규격_위반이_문서에_남는다(parts):
     parts(
-        step1_brief=True,
-        step2_naming="def generate_naming(brief):\n    return {'naming': [], 'slogans': ['s'], 'story': '짧다'}\n",
+        brief=True,
+        naming="def generate_naming(brief):\n    return {'naming': [], 'slogans': ['s'], 'story': '짧다'}\n",
     )
     payload = runner.to_result_dict(runner.run_all(), "t")
     text = report.build_run_report(payload)

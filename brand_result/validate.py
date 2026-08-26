@@ -20,7 +20,7 @@ MIN_KEYWORDS = 2
 MIN_NAMES = 3
 MAX_NAMES = 5  # 명세: 브랜드명 후보 3~5개
 MIN_SLOGANS = 3
-MIN_STORY_CHARS = 200
+MIN_STORY_CHARS = 260  # 명세: 브랜드 스토리 300자 내외
 MIN_SUBS = 2
 
 
@@ -188,5 +188,10 @@ def check_logos(logos: object) -> list[str]:
             problems.append(f"{where}: image_bytes 도 path 도 없습니다")
         if "prompt" not in logo:
             problems.append(f"{where}: 'prompt' 키가 없습니다")
+        if logo.get("source") == "placeholder":
+            # 1x1 투명 PNG 다. 파일은 있으나 그림이 없다 — 제출 전에 알아야 한다.
+            problems.append(
+                f"{where}: 이미지 생성이 모두 실패해 자리표시자가 들어갔습니다"
+                " (logo_prompts.md 의 문장으로 직접 만들어 교체하세요)")
 
     return problems

@@ -29,6 +29,7 @@ import base64
 import json
 import os
 import urllib.parse
+import urllib.error
 import urllib.request
 from pathlib import Path
 
@@ -94,8 +95,16 @@ def _openai_image(prompt: str, api_key: str) -> bytes | None:
             if item.get("url"):
                 with urllib.request.urlopen(item["url"], timeout=TIMEOUT) as image:
                     return _to_png(image.read())
-        except Exception:
+        except urllib.error.HTTPError as exc:
+            # 401·403 은 모델 문제가 아니라 키 문제다. 조용히 무료 API 로 넘어가면
+            # 사용자는 자기 키가 틀린 줄 모른 채 엉뚱한 결과를 받는다.
+            if exc.code in (401, 403):
+                print(f"   ⚠️  [4] OpenAI 키가 거부되었습니다 (HTTP {exc.code})"
+                      " — .env 의 OPENAI_API_KEY 와 결제 상태를 확인하세요")
+                return None
             continue  # 이 모델은 못 쓴다. 다음 후보로.
+        except Exception:
+            continue
     return None
 
 

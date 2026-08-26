@@ -80,10 +80,34 @@ def build_run_report(payload: dict) -> str:
         lines += ["", "## 규격이 어긋난 곳", "", "버리지 않고 저장했습니다. 사람이 보고 판단할 문제입니다.", ""]
         lines += [f"- **{step}** {problem}" for step, problem in problems]
 
-    if not (missing or failed or problems):
+    examples = _example_steps(payload)
+    if examples:
+        lines += ["", "## LLM 대신 예시 값을 쓴 곳", "",
+                  "키가 없거나 호출이 실패해 미리 넣어 둔 값으로 채웠습니다.",
+                  "제출 전에 키를 넣고 다시 돌려야 실제 생성 결과가 나옵니다.", ""]
+        lines += [f"- {name}" for name in examples]
+
+    if not (missing or failed or problems or examples):
         lines += ["", "모든 단계가 규격대로 끝났습니다."]
 
     return "\n".join(lines) + "\n"
+
+
+def _example_steps(payload: dict) -> list[str]:
+    """예시 값으로 채워진 단계를 찾는다.
+
+    각 단계가 결과에 `used_example` 을 달아 알린다. 터미널에만 찍고 지나가면
+    제출물에는 흔적이 없어, 받는 사람이 실제 생성 결과로 착각한다.
+    """
+    labels = {"naming": "[2] 네이밍·슬로건·스토리", "palette": "[3] 컬러 팔레트"}
+    found = [label for key, label in labels.items()
+             if isinstance(payload.get(key), dict) and payload[key].get("used_example")]
+
+    logos = payload.get("logos")
+    if isinstance(logos, list) and any(
+            isinstance(logo, dict) and logo.get("source") == "placeholder" for logo in logos):
+        found.append("[4] 로고 시안 — 자리표시자 이미지")
+    return found
 
 
 def _brief_block(brief: dict | None) -> list[str]:

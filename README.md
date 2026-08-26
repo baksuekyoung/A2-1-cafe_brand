@@ -149,10 +149,10 @@ python main.py
 main.py                    진입점 — 대화형 입력과 [1] 브리프 검증
 integrate.py               [5] 통합 실행
 test_api.py                API 연결 테스트
-step1_brief.py             [1] load_brief() -> dict
-step2_naming.py            [2] generate_naming(brief) -> dict
-step3_palette.py           [3] generate_palette(brief, naming) -> dict
-step4_logo.py              [4] generate_logos(brief, naming, palette) -> list
+brief.py             [1] load_brief() -> dict
+naming.py            [2] generate_naming(brief) -> dict
+palette.py           [3] generate_palette(brief, naming) -> dict
+logo.py              [4] generate_logos(brief, naming, palette) -> list
 brand_result/
   runner.py                단계 호출과 예외 격리
   validate.py              데이터 계약 검증

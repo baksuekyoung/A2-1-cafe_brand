@@ -107,7 +107,7 @@ def test_잘못된_경로를_주면_다시_묻는다(tmp_path, monkeypatch, caps
     assert "찾을 수 없습니다" in capsys.readouterr().out
 
 
-def test_브리프를_넘기면_step1_파일을_읽지_않는다(parts):
+def test_브리프를_넘기면_brief_파일을_읽지_않는다(parts):
     """main.py 가 [1] 을 끝내고 넘긴 경우, runner 는 그 값을 그대로 쓴다.
 
     `parts` 를 받는 이유 — 이걸 빼면 뒤 단계가 진짜 API 를 부른다.

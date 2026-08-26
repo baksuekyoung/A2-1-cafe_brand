@@ -359,19 +359,19 @@ def generate_naming(brief: dict) -> dict:
     if not api_key:
         print("   ℹ️  [2] API 키가 없어 예시 값으로 돌립니다"
               " (.env 에 OPENAI_API_KEY 또는 GEMINI_API_KEY)")
-        return EXAMPLE
+        return dict(EXAMPLE, used_example=True)
 
     try:
         result = _normalize(call(build_prompt(brief), api_key))
     except Exception as exc:
         print(f"   ⚠️  [2] {provider} 호출 실패({exc}) — 예시 값으로 대신합니다")
-        return EXAMPLE
+        return dict(EXAMPLE, used_example=True)
     print(f"   🤖 [2] {provider} 로 생성했습니다")
 
     # 규격 미달이면 예시가 낫다. 이름 하나짜리 결과로 뒤 단계를 돌릴 수는 없다.
     if len(result["naming"]) < 3 or len(result["slogans"]) < 3:
         print("   ⚠️  [2] 결과가 규격에 못 미쳐 예시 값으로 대신합니다")
-        return EXAMPLE
+        return dict(EXAMPLE, used_example=True)
 
     # 스토리만 짧게 오는 일이 잦다 — "280~320자" 를 프롬프트에 못 박아도
     # 실측 178·193·194자로 왔다. 그럴 때 스토리만 한 번 다시 청한다.
@@ -415,7 +415,7 @@ if __name__ == "__main__":
             _stream.reconfigure(encoding="utf-8", errors="replace")
 
     # 자기 파트만 따로 돌려 볼 때 씁니다.
-    #   python step2_naming.py
+    #   python naming.py
     from pathlib import Path
 
     brief_path = Path(__file__).resolve().parent / "samples" / "brief.json"

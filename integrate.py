@@ -43,7 +43,7 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
     Args:
         output: 출력 폴더. 없으면 만든다.
         debug: 실패한 단계의 전체 추적을 출력한다.
-        brief: [1] 이 이미 읽어 검증한 브리프. 주면 `step1_brief.py` 를
+        brief: [1] 이 이미 읽어 검증한 브리프. 주면 `brief.py` 를
             부르지 않고 이 값을 그대로 쓴다. `main.py` 가 이 경로로 넘긴다.
 
     Returns:
@@ -69,7 +69,7 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
     if isinstance(payload.get("logos"), list):
         try:
             logo_paths = store.save_logos(payload["logos"], output_dir)
-        except OSError as exc:
+        except Exception as exc:
             print(f"  ⚠️  로고 저장 실패: {exc}")
 
     saved = []
@@ -103,8 +103,14 @@ def run(output: str = "./output", *, debug: bool = False, brief: dict | None = N
     for label, write in writers:
         try:
             path = write()
-        except OSError as exc:
-            print(f"  ❌ {label} 저장 실패 — {exc}")
+        except Exception as exc:
+            # OSError 만 잡으면 부족하다. 예를 들어 LLM 이 hex 를 틀리게 주면
+            # 그림 그리는 쪽에서 ValueError 가 올라와 실행 전체가 죽는다.
+            # 한 파일이 실패해도 나머지는 저장돼야 한다.
+            print(f"  ❌ {label} 저장 실패 — {type(exc).__name__}: {exc}")
+            if debug:
+                import traceback
+                traceback.print_exc()
         else:
             saved.append(path)
             print(f"  💾 {path}")
